@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>异步编程 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="js-async">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>JavaScript 核心</span><span class="sep">/</span><span>异步编程</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">JavaScript</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">异步编程</h1>
+        <p class="page-subtitle">JavaScript 是单线程语言，通过事件循环和异步编程模型处理并发任务。从回调地狱到 Promise 再到 async/await，异步编程的演进是 JS 最重要的进化。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>异步编程</strong>是指代码不需要等待耗时操作完成就能继续执行，操作完成后通过回调、Promise 或事件通知结果。这与同步编程（逐行阻塞等待）形成对比。</p>
+        <p>JavaScript 之所以需要异步，是因为它运行在<strong>单线程</strong>环境中。如果所有操作都同步执行，网络请求、文件读取等 I/O 操作会阻塞整个线程，导致界面卡死。</p>
+        <p>异步编程经历了三个阶段：<strong>回调函数</strong>（ES5 及之前）→ <strong>Promise</strong>（ES6）→ <strong>async/await</strong>（ES2017）。每一层都是对前一层的改进，但底层都依赖事件循环机制。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 三种异步方案对比</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>特性</th><th>回调函数</th><th>Promise</th><th>async/await</th></tr></thead>
+            <tbody>
+              <tr><td>可读性</td><td>差（嵌套地狱）</td><td>较好（链式调用）</td><td>好（同步写法）</td></tr>
+              <tr><td>错误处理</td><td>每层单独处理</td><td>.catch() 统一捕获</td><td>try/catch 统一捕获</td></tr>
+              <tr><td>并行控制</td><td>手动管理</td><td>Promise.all/race/allSettled</td><td>配合 Promise 方法</td></tr>
+              <tr><td>调试难度</td><td>高</td><td>中</td><td>低</td></tr>
+              <tr><td>兼容性</td><td>全部支持</td><td>ES6+</td><td>ES2017+</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 Promise 核心概念</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>状态</th><th>说明</th><th>转换</th></tr></thead>
+            <tbody>
+              <tr><td><code>pending</code></td><td>初始状态，既没有兑现也没有拒绝</td><td>初始状态</td></tr>
+              <tr><td><code>fulfilled</code></td><td>操作成功完成</td><td>pending → fulfilled（不可逆）</td></tr>
+              <tr><td><code>rejected</code></td><td>操作失败</td><td>pending → rejected（不可逆）</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Promise 状态一旦变更就不可逆（settled），这称为<strong>已决（Settled）</strong>。fulfilled 和 rejected 都是 settled 状态。</p>
+
+        <h3 class="subsection-title">2.3 Promise 静态方法</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>方法</th><th>行为</th><th>失败处理</th></tr></thead>
+            <tbody>
+              <tr><td><code>Promise.all()</code></td><td>全部成功才成功</td><td>任一失败即失败（快速失败）</td></tr>
+              <tr><td><code>Promise.allSettled()</code></td><td>等待全部完成</td><td>永不失败，返回所有结果</td></tr>
+              <tr><td><code>Promise.race()</code></td><td>取第一个完成的结果</td><td>第一个失败则失败</td></tr>
+              <tr><td><code>Promise.any()</code></td><td>取第一个成功的结果</td><td>全部失败才失败</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 微任务与宏任务</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>分类</th><th>包含</th><th>执行时机</th></tr></thead>
+            <tbody>
+              <tr><td>微任务（Microtask）</td><td>Promise.then/catch/finally、MutationObserver、queueMicrotask()</td><td>当前宏任务结束后立即执行，清空微任务队列</td></tr>
+              <tr><td>宏任务（Macrotask）</td><td>setTimeout、setInterval、I/O、UI 渲染、事件回调</td><td>微任务队列清空后执行下一个</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>执行顺序：同步代码 → 微任务队列（清空）→ 下一个宏任务。Promise 的 .then 回调是微任务，setTimeout 回调是宏任务。</p>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：Promise 基础与链式调用</h3>
+        <pre><code class="code-label">JavaScript</code>// 创建 Promise
+function fetchUser(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (id > 0) {
+        resolve({ id, name: 'Alice' });
+      } else {
+        reject(new Error('Invalid user id'));
+      }
+    }, 1000);
+  });
+}
+
+// 链式调用
+fetchUser(1)
+  .then(user => {
+    console.log(user); // { id: 1, name: 'Alice' }
+    return fetchUser(2); // 返回新 Promise，链式传递
+  })
+  .then(user => {
+    console.log(user); // { id: 2, name: 'Alice' }
+  })
+  .catch(err => {
+    console.error('Error:', err.message); // 捕获链中任何错误
+  })
+  .finally(() => {
+    console.log('Done'); // 无论成功失败都执行
+  });</code></pre>
+
+        <h3 class="subsection-title">示例二：async/await 最佳实践</h3>
+        <pre><code class="code-label">JavaScript</code>async function loadUserProfile(userId) {
+  try {
+    // 串行执行（有依赖关系）
+    const user = await fetchUser(userId);
+    const posts = await fetchPosts(user.id);
+    const comments = await fetchComments(posts[0].id);
+    
+    return { user, posts, comments };
+  } catch (error) {
+    console.error('加载失败:', error.message);
+    // 可以选择重新抛出或返回默认值
+    return null;
+  }
+}
+
+// 并行执行（无依赖关系）
+async function loadDashboard() {
+  try {
+    // ✅ 并行请求，总耗时 = max(各请求耗时)
+    const [user, notifications, settings] = await Promise.all([
+      fetchUser(1),
+      fetchNotifications(),
+      fetchSettings()
+    ]);
+    return { user, notifications, settings };
+  } catch (error) {
+    console.error('Dashboard 加载失败:', error);
+  }
+}
+
+// 带超时的请求
+function withTimeout(promise, ms) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms)
+  );
+  return Promise.race([promise, timeout]);
+}
+
+// 使用
+const result = await withTimeout(fetchUser(1), 3000);</code></pre>
+
+        <h3 class="subsection-title">示例三：Promise 并发控制</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 并发控制器：限制同时执行的 Promise 数量
+ * @param {Array<Function>} tasks - 返回 Promise 的函数数组
+ * @param {number} concurrency - 最大并发数
+ */
+async function concurrentLimit(tasks, concurrency) {
+  const results = [];
+  const executing = new Set();
+
+  for (const [index, task] of tasks.entries()) {
+    const p = Promise.resolve().then(() => task());
+    results[index] = p;
+    executing.add(p);
+
+    const cleanup = () => executing.delete(p);
+    p.then(cleanup, cleanup);
+
+    if (executing.size >= concurrency) {
+      await Promise.race(executing); // 等待最快的一个完成
+    }
+  }
+
+  return Promise.all(results);
+}
+
+// 使用：10 个任务，最多 3 个并发
+const tasks = Array.from({ length: 10 }, (_, i) => 
+  () => new Promise(resolve => {
+    console.log(`Task ${i} started`);
+    setTimeout(() => {
+      console.log(`Task ${i} done`);
+      resolve(i);
+    }, Math.random() * 2000);
+  })
+);
+
+const results = await concurrentLimit(tasks, 3);
+console.log(results); // [0, 1, 2, ..., 9]</code></pre>
+
+        <h3 class="subsection-title">示例四：Promise 重试机制</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 带重试的异步函数
+ * @param {Function} fn - 返回 Promise 的函数
+ * @param {number} retries - 最大重试次数
+ * @param {number} delay - 重试间隔（毫秒）
+ */
+async function retry(fn, retries = 3, delay = 1000) {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries <= 0) throw error;
+    console.log(`重试中... 剩余 ${retries} 次`);
+    await new Promise(r => setTimeout(r, delay));
+    return retry(fn, retries - 1, delay * 2); // 指数退避
+  }
+}
+
+// 使用
+const data = await retry(
+  () => fetch('https://api.example.com/data').then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }),
+  3,
+  1000
+);</code></pre>
+
+        <h3 class="subsection-title">示例五：异步迭代与 for await...of</h3>
+        <pre><code class="code-label">JavaScript</code>// 异步生成器：分页数据加载
+async function* paginate(url) {
+  let page = 1;
+  let hasMore = true;
+  
+  while (hasMore) {
+    const response = await fetch(`${url}?page=${page}`);
+    const data = await response.json();
+    
+    yield data.items;
+    
+    hasMore = data.hasNext;
+    page++;
+  }
+}
+
+// 使用 for await...of 消费异步迭代器
+async function loadAllItems() {
+  const allItems = [];
+  for await (const items of paginate('https://api.example.com/items')) {
+    allItems.push(...items);
+    console.log(`已加载 ${allItems.length} 条`);
+  }
+  return allItems;
+}
+
+// 也可以手动迭代
+async function loadFirstPage() {
+  const iterator = paginate('https://api.example.com/items');
+  const { value } = await iterator.next();
+  return value; // 仅第一页
+}</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Promise.all 中一个失败，其他 Promise 还会执行吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>会。Promise.all 是"快速失败"——一旦有一个 rejected 就立即返回 rejected Promise，但其他已启动的 Promise 不会取消（JS 没有取消机制）。如果需要知道所有结果（包括失败的），使用 Promise.allSettled()。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">async 函数中的错误如果不 catch 会怎样？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>async 函数返回的 Promise 会变为 rejected 状态。如果没有 .catch() 或 try/catch 处理，会产生"未处理的 Promise 拒绝"警告，Node.js 中可能导致进程退出。最佳实践：所有 async 函数调用都要处理错误。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">await 可以在普通函数中使用吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>不能。await 只能在 async 函数中使用（模块顶层 await 除外，ES2022 支持）。在普通函数中使用会报 SyntaxError。forEach 的回调不是 async 上下文，所以 <code>arr.forEach(async (item) => { await ... })</code> 不会等待，应改用 for...of。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 async forEach 陷阱</div>
+          <p><code>arr.forEach(async (item) => { await asyncOp(item); })</code> 不会等待所有异步操作完成！forEach 不会等待回调中的 Promise。改用 <code>for...of</code>（串行）或 <code>Promise.all(arr.map(...))</code>（并行）。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ 忘记 await</div>
+          <p><code>const data = asyncFn();</code> 忘记 await，data 会是一个 Promise 而非实际数据。这在 TypeScript 中更容易发现（类型不匹配），但在 JS 中是静默错误。建议 ESLint 规则 require-await。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise" target="_blank">MDN - Promise</a></li>
+          <li><a href="https://zh.javascript.info/async" target="_blank">现代 JavaScript 教程 - 异步</a></li>
+          <li><a href="https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/" target="_blank">Tasks, microtasks, queues and schedules</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>请说出下面代码的输出顺序。</div>
+          <div class="iq-hint"><code>console.log(1); setTimeout(() => console.log(2), 0); Promise.resolve().then(() => console.log(3)); console.log(4);</code> 输出：1, 4, 3, 2。同步代码先执行（1, 4）→ 微任务（Promise.then → 3）→ 宏任务（setTimeout → 2）。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>Promise.all 和 Promise.allSettled 的区别？</div>
+          <div class="iq-hint">Promise.all：任一失败立即返回 rejected Promise（快速失败），成功时返回所有结果的数组。Promise.allSettled：等待所有 Promise 完成，不论成功失败，返回 {status, value/reason} 数组，永远不 rejected。需要容错时用 allSettled。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>如何实现 Promise？</div>
+          <div class="iq-hint">核心要点：① 三个状态（pending/fulfilled/rejected），状态不可逆；② resolve/reject 函数改变状态并执行 then 注册的回调；③ then 返回新 Promise（链式调用）；④ 微任务（用 queueMicrotask 或 setTimeout 模拟）；⑤ 值穿透（then 非函数参数时透传值）。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

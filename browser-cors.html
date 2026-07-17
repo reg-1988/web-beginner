@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>跨域与安全策略 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="browser-cors">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>浏览器与网络</span><span class="sep">/</span><span>跨域与安全策略</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">浏览器</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">跨域与安全策略</h1>
+        <p class="page-subtitle">同源策略是浏览器安全的基石，跨域限制让前后端分离项目面临挑战——理解同源策略、CORS 机制和各种跨域方案，是前端开发者的必备技能。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>同源策略（Same-Origin Policy, SOP）</strong>是浏览器最基本的安全机制，限制一个源的文档或脚本与另一个源的资源进行交互。两个 URL 具有<strong>相同的协议（protocol）、域名（host）和端口（port）</strong>时才同源。</p>
+        <p>同源策略主要限制三个方面：<strong>DOM 访问</strong>（不能读取不同源的 iframe/窗口的 DOM）、<strong>数据访问</strong>（不能读取不同源的 Ajax 响应）、<strong>Cookie/Storage 访问</strong>（不能读取不同源的存储数据）。</p>
+        <p><strong>CORS（Cross-Origin Resource Sharing）</strong>是 W3C 标准的跨域解决方案，通过 HTTP 头部告诉浏览器允许哪些跨域请求。它是目前最主流、最规范的跨域方案。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 同源判断</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>URL A</th><th>URL B</th><th>是否同源</th><th>原因</th></tr></thead>
+            <tbody>
+              <tr><td>https://a.com/page</td><td>https://a.com/other</td><td>✅ 同源</td><td>协议/域名/端口相同</td></tr>
+              <tr><td>https://a.com</td><td>http://a.com</td><td>❌ 跨域</td><td>协议不同</td></tr>
+              <tr><td>https://a.com</td><td>https://www.a.com</td><td>❌ 跨域</td><td>域名不同</td></tr>
+              <tr><td>https://a.com</td><td>https://a.com:8080</td><td>❌ 跨域</td><td>端口不同</td></tr>
+              <tr><td>https://a.com</td><td>https://127.0.0.1</td><td>❌ 跨域</td><td>域名和IP不等价</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 CORS 请求分类</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>类型</th><th>条件</th><th>特点</th></tr></thead>
+            <tbody>
+              <tr><td>简单请求</td><td>GET/HEAD/POST + 标准 Content-Type + 无自定义头</td><td>直接发送，浏览器自动加 Origin</td></tr>
+              <tr><td>预检请求（Preflight）</td><td>PUT/DELETE/PATCH / 自定义头 / 非 standard Content-Type</td><td>先发 OPTIONS 请求，通过后再发实际请求</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 CORS 关键头部</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>头部</th><th>方向</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>Origin</code></td><td>请求 →</td><td>浏览器自动添加，表示请求来源</td></tr>
+              <tr><td><code>Access-Control-Allow-Origin</code></td><td>← 响应</td><td>允许的源（* 或具体源）</td></tr>
+              <tr><td><code>Access-Control-Allow-Methods</code></td><td>← 响应</td><td>允许的 HTTP 方法</td></tr>
+              <tr><td><code>Access-Control-Allow-Headers</code></td><td>← 响应</td><td>允许的请求头</td></tr>
+              <tr><td><code>Access-Control-Allow-Credentials</code></td><td>← 响应</td><td>是否允许携带 Cookie</td></tr>
+              <tr><td><code>Access-Control-Max-Age</code></td><td>← 响应</td><td>预检请求缓存时间（秒）</td></tr>
+              <tr><td><code>Access-Control-Expose-Headers</code></td><td>← 响应</td><td>允许前端读取的响应头</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 跨域方案对比</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>方案</th><th>原理</th><th>优点</th><th>缺点</th></tr></thead>
+            <tbody>
+              <tr><td>CORS</td><td>服务端设置响应头</td><td>标准、通用、支持所有 HTTP 方法</td><td>需后端配合</td></tr>
+              <tr><td>代理</td><td>同源服务器转发请求</td><td>前端无感、无需后端改CORS</td><td>需部署代理服务</td></tr>
+              <tr><td>JSONP</td><td>script 标签不受 SOP 限制</td><td>兼容老浏览器</td><td>只支持 GET、有安全风险</td></tr>
+              <tr><td>postMessage</td><td>跨窗口消息传递</td><td>iframe 通信标准方案</td><td>仅窗口间通信</td></tr>
+              <tr><td>WebSocket</td><td>不受同源策略限制</td><td>全双工通信</td><td>需后端支持 WS 协议</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：Node.js CORS 中间件</h3>
+        <pre><code class="code-label">JavaScript</code>// Express CORS 中间件（完整版）
+function cors(options = {}) {
+  const {
+    origin = '*',           // 允许的源
+    methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders = ['Content-Type', 'Authorization'],
+    exposedHeaders = [],
+    credentials = false,
+    maxAge = 86400,         // 预检缓存 24 小时
+  } = options;
+
+  return (req, res, next) => {
+    // 处理 Origin
+    const requestOrigin = req.headers.origin;
+    if (typeof origin === 'function') {
+      // 动态判断是否允许
+      const allowed = origin(requestOrigin);
+      if (allowed) res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+    } else if (origin === '*') {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    } else if (Array.isArray(origin) && origin.includes(requestOrigin)) {
+      res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+    }
+
+    res.setHeader('Access-Control-Allow-Methods', methods.join(', '));
+    res.setHeader('Access-Control-Allow-Headers', allowedHeaders.join(', '));
+    
+    if (credentials) {
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      // 携带 Cookie 时不能设 *，必须指定具体源
+    }
+    if (exposedHeaders.length) {
+      res.setHeader('Access-Control-Expose-Headers', exposedHeaders.join(', '));
+    }
+    res.setHeader('Access-Control-Max-Age', String(maxAge));
+
+    // 预检请求直接返回
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
+    next();
+  };
+}
+
+// 使用
+app.use(cors({
+  origin: ['https://www.example.com', 'https://admin.example.com'],
+  credentials: true,
+}));</code></pre>
+
+        <h3 class="subsection-title">示例二：开发环境代理配置</h3>
+        <pre><code class="code-label">JavaScript</code>// Vite 代理配置（vite.config.js）
+export default {
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://backend.example.com',
+        changeOrigin: true,  // 修改请求头中的 Origin
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        // configure: (proxy) => {
+        //   proxy.on('proxyReq', (proxyReq) => {
+        //     console.log('代理请求:', proxyReq.path);
+        //   });
+        // }
+      },
+      // WebSocket 代理
+      '/ws': {
+        target: 'ws://backend.example.com',
+        ws: true,
+      }
+    }
+  }
+};
+
+// Webpack 代理配置（webpack.config.js / vue.config.js）
+module.exports = {
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'http://backend.example.com',
+        changeOrigin: true,
+        pathRewrite: { '^/api': '' },
+      }
+    }
+  }
+};</code></pre>
+
+        <h3 class="subsection-title">示例三：JSONP 实现</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * JSONP：利用 script 标签不受同源策略限制的特点
+ * 仅支持 GET 请求，存在安全风险（XSS），不推荐新项目使用
+ */
+function jsonp(url, params = {}, callbackName = `jsonp_${Date.now()}`) {
+  return new Promise((resolve, reject) => {
+    // 将回调函数挂载到 window
+    window[callbackName] = (data) => {
+      resolve(data);
+      cleanup();
+    };
+
+    // 拼接 URL
+    const query = new URLSearchParams({
+      ...params,
+      callback: callbackName,
+    }).toString();
+    const script = document.createElement('script');
+    script.src = `${url}?${query}`;
+    script.onerror = () => {
+      reject(new Error('JSONP request failed'));
+      cleanup();
+    };
+
+    document.head.appendChild(script);
+
+    function cleanup() {
+      delete window[callbackName];
+      script.remove();
+    }
+  });
+}
+
+// 使用
+const data = await jsonp('https://api.example.com/users', { page: 1 });
+// 服务端返回：jsonp_1234567890({"name": "Alice"})</code></pre>
+
+        <h3 class="subsection-title">示例四：postMessage 跨窗口通信</h3>
+        <pre><code class="code-label">JavaScript</code>// ====== 父页面（A 源）======
+const iframe = document.getElementById('child-frame');
+
+// 向子页面发送消息
+iframe.contentWindow.postMessage(
+  { type: 'INIT', data: { theme: 'dark' } },
+  'https://child.example.com' // 指定目标源（安全！）
+);
+
+// 接收子页面消息
+window.addEventListener('message', (event) => {
+  // ✅ 始终验证 origin
+  if (event.origin !== 'https://child.example.com') return;
+  
+  console.log('收到子页面消息:', event.data);
+});
+
+// ====== 子页面（B 源）======
+// 接收父页面消息
+window.addEventListener('message', (event) => {
+  if (event.origin !== 'https://parent.example.com') return;
+  
+  if (event.data.type === 'INIT') {
+    // 处理消息
+    applyTheme(event.data.data.theme);
+    // 回复父页面
+    event.source.postMessage(
+      { type: 'READY' },
+      event.origin
+    );
+  }
+});</code></pre>
+
+        <h3 class="subsection-title">示例五：携带 Cookie 的跨域请求</h3>
+        <pre><code class="code-label">JavaScript</code>// 前端：fetch 携带 Cookie
+fetch('https://api.example.com/user', {
+  method: 'GET',
+  credentials: 'include', // 携带跨域 Cookie
+  // credentials: 'same-origin' — 仅同源携带（默认）
+  // credentials: 'omit' — 不携带
+})
+.then(res => res.json())
+.then(data => console.log(data));
+
+// Axios 携带 Cookie
+axios.get('https://api.example.com/user', {
+  withCredentials: true,
+});
+
+// 后端配合设置（缺一不可）：
+// 1. Access-Control-Allow-Origin 不能为 *，必须指定具体源
+// 2. Access-Control-Allow-Credentials: true
+// 3. Cookie 的 SameSite 属性需要正确配置
+// 4. Cookie 的 Domain 需要匹配或使用父域共享
+// 5. HTTPS 环境下 Cookie 需设置 Secure</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">为什么 CORS 携带 Cookie 时 Allow-Origin 不能设 *？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>浏览器安全规范要求：当 credentials: include 时，Access-Control-Allow-Origin 必须指定具体的源，不能用通配符 *。同时 Access-Control-Allow-Credentials 必须为 true。这是为了防止任意源携带用户的 Cookie 访问资源。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">预检请求（OPTIONS）失败怎么办？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>常见原因：① 服务器未处理 OPTIONS 请求（返回 405 或 404）；② 响应头缺少 Access-Control-Allow-Headers/Methods；③ 服务器认证拦截了 OPTIONS 请求。解决方案：OPTIONS 请求直接返回 204，不经过认证中间件。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">SameSite Cookie 对跨域的影响？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>SameSite=Lax（Chrome 默认）：跨站导航（如 &lt;a&gt;）携带 Cookie，但跨站 Ajax/fetch 不携带。SameSite=None：跨站请求携带 Cookie，但必须配合 Secure。SameSite=Strict：仅同站请求携带。前后端分离部署在不同域时，Cookie 需设 SameSite=None; Secure。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 JSONP 存在安全风险</div>
+          <p>JSONP 本质是注入 script 标签执行回调，存在 XSS 风险。恶意网站可以调用你的 JSONP 接口获取数据。新项目务必使用 CORS，JSONP 仅作为老浏览器兼容方案。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ postMessage 必须验证 origin</div>
+          <p><code>window.addEventListener('message', handler)</code> 会接收所有源的消息。不验证 origin 可能被恶意页面利用，造成安全漏洞。始终在 message 事件处理中检查 event.origin。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/CORS" target="_blank">MDN - CORS</a></li>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/Security/Same-origin_policy" target="_blank">MDN - 同源策略</a></li>
+          <li><a href="https://web.dev/articles/cross-origin-resource-sharing" target="_blank">web.dev - CORS</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>什么是同源策略？为什么需要它？</div>
+          <div class="iq-hint">同源策略限制不同源之间的 DOM 访问、数据读取和 Cookie/Storage 访问。需要它的原因：防止恶意网站读取用户在其他网站的数据（如银行余额）、防止 CSRF 攻击、防止点击劫持。没有 SOP，任何网站都能用 JS 读取其他网站的数据。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>CORS 的预检请求是什么？为什么需要？</div>
+          <div class="iq-hint">预检请求是浏览器在发送"非简单请求"前自动发出的 OPTIONS 请求，询问服务器是否允许跨域。需要的原因：某些请求（如 PUT/DELETE、自定义头）可能对服务器数据产生副作用，浏览器先确认服务器是否允许，避免直接发送造成不可逆影响。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>前端跨域有哪些方案？各有什么优缺点？</div>
+          <div class="iq-hint">CORS（标准方案，需后端配合）；代理（开发环境常用，部署时需代理服务）；JSONP（仅 GET，有安全风险）；postMessage（iframe 间通信）；WebSocket（不受 SOP 限制）；Nginx 反向代理（生产环境常用）。推荐组合：开发用代理，生产用 CORS + Nginx。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

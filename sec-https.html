@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTTPS 与安全 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="sec-https">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>性能与安全</span><span class="sep">/</span><span>HTTPS 与安全</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">安全</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">HTTPS 与安全</h1>
+        <p class="page-subtitle">HTTPS 是 Web 安全的传输基础——理解 TLS 握手、证书体系、混合内容策略，才能构建安全的 Web 应用。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>HTTPS</strong>是在 HTTP 基础上加入 <strong>TLS（Transport Layer Security）</strong>加密层，提供<strong>加密传输</strong>、<strong>身份验证</strong>和<strong>数据完整性</strong>三大安全保障。</p>
+        <p>HTTP 的问题：明文传输（可被窃听）、无身份验证（可被冒充）、无完整性校验（可被篡改）。HTTPS 通过 TLS 解决了这三个问题。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 TLS 握手流程</h3>
+        <pre><code class="code-label">text">客户端                              服务器
+  |                                    |
+  |--- ClientHello ------------------→|  支持的 TLS 版本、加密套件、随机数
+  |                                    |
+  |←-- ServerHello -------------------|  选定的加密套件、随机数
+  |←-- Certificate -------------------|  服务器证书链
+  |←-- ServerKeyExchange ------------|  (可选) DH 参数
+  |←-- ServerHelloDone --------------|
+  |                                    |
+  |--- ClientKeyExchange ------------→|  预主密钥/DH 公钥
+  |--- ChangeCipherSpec ------------→|  切换到加密通信
+  |--- Finished ---------------------→|  验证握手完整性
+  |                                    |
+  |←-- ChangeCipherSpec --------------|  切换到加密通信
+  |←-- Finished -----------------------|  验证握手完整性
+  |                                    |
+  |←====== 加密数据传输 =========→|  使用协商的对称密钥
+
+TLS 1.3 优化：1-RTT 握手（合并步骤），0-RTT 恢复</code></pre>
+
+        <h3 class="subsection-title">2.2 HTTPS 的三大保障</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>保障</th><th>机制</th><th>防什么</th></tr></thead>
+            <tbody>
+              <tr><td>加密</td><td>对称加密（AES-GCM）传输数据</td><td>窃听（中间人截获）</td></tr>
+              <tr><td>认证</td><td>CA 签发的数字证书验证身份</td><td>冒充（钓鱼网站）</td></tr>
+              <tr><td>完整性</td><td>MAC（消息认证码）校验数据</td><td>篡改（中间人修改）</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 证书体系</h3>
+        <pre><code class="code-label">text">根 CA（DigiCert, Let's Encrypt, ...）
+  └── 中间 CA
+      └── 终端证书（example.com）
+
+证书链验证：
+1. 浏览器收到服务器证书 + 中间 CA 证书
+2. 用中间 CA 公钥验证服务器证书签名
+3. 用根 CA 公钥验证中间 CA 证书签名
+4. 根 CA 证书预装在浏览器/操作系统中
+
+证书包含：域名、有效期、公钥、CA 签名</code></pre>
+
+        <h3 class="subsection-title">2.4 混合内容</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>类型</th><th>示例</th><th>浏览器行为</th></tr></thead>
+            <tbody>
+              <tr><td>被动混合内容</td><td>&lt;img&gt;, &lt;audio&gt;, &lt;video&gt;</td><td>可能加载但警告</td></tr>
+              <tr><td>主动混合内容</td><td>&lt;script&gt;, &lt;link&gt;, &lt;iframe&gt;, XHR</td><td>默认阻止</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：HSTS 配置</h3>
+        <pre><code class="code-label">HTTP</code># HSTS：强制浏览器始终使用 HTTPS
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+# 参数说明：
+# max-age=31536000    — 1 年内强制 HTTPS
+# includeSubDomains   — 所有子域名也强制
+# preload             — 加入浏览器 HSTS 预加载列表
+
+# Nginx 配置
+server {
+    listen 80;
+    server_name example.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name example.com;
+    
+    ssl_certificate /etc/ssl/certs/example.com.crt;
+    ssl_certificate_key /etc/ssl/private/example.com.key;
+    
+    # 安全头部
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Content-Security-Policy "default-src 'self'" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+}</code></pre>
+
+        <h3 class="subsection-title">示例二：检测并修复混合内容</h3>
+        <pre><code class="code-label">JavaScript</code>// 检测页面中的混合内容
+function findMixedContent() {
+  const issues = [];
+
+  // 检查图片
+  document.querySelectorAll('img[src^="http:"]').forEach(el => {
+    issues.push({ type: 'img', src: el.src });
+  });
+
+  // 检查脚本
+  document.querySelectorAll('script[src^="http:"]').forEach(el => {
+    issues.push({ type: 'script', src: el.src });
+  });
+
+  // 检查样式表
+  document.querySelectorAll('link[href^="http:"]').forEach(el => {
+    issues.push({ type: 'stylesheet', href: el.href });
+  });
+
+  // 检查 iframe
+  document.querySelectorAll('iframe[src^="http:"]').forEach(el => {
+    issues.push({ type: 'iframe', src: el.src });
+  });
+
+  return issues;
+}
+
+// 自动升级不安全请求（CSP）
+// Content-Security-Policy: upgrade-insecure-requests
+// 浏览器自动将 http:// 升级为 https://
+
+// HTML meta 标签方式
+// &lt;meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"&gt;</code></pre>
+
+        <h3 class="subsection-title">示例三：安全头部最佳实践</h3>
+        <pre><code class="code-label">HTTP</code># 完整的安全响应头配置
+
+# 1. HSTS：强制 HTTPS
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+# 2. X-Content-Type-Options：防止 MIME 类型嗅探
+X-Content-Type-Options: nosniff
+
+# 3. X-Frame-Options：防止点击劫持
+X-Frame-Options: SAMEORIGIN
+# DENY — 完全不允许嵌入
+# SAMEORIGIN — 同源允许
+
+# 4. CSP：内容安全策略（防 XSS）
+Content-Security-Policy: default-src 'self'; script-src 'self'
+
+# 5. Referrer-Policy：控制 Referer 发送
+Referrer-Policy: strict-origin-when-cross-origin
+# 跨站请求只发送 origin，不发送完整 URL
+
+# 6. Permissions-Policy：限制浏览器 API
+Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+
+# 7. X-XSS-Protection（旧浏览器，已被 CSP 替代）
+X-XSS-Protection: 1; mode=block</code></pre>
+
+        <h3 class="subsection-title">示例四：Certificate Pinning（证书钉扎）</h3>
+        <pre><code class="code-label">JavaScript</code>// 前端无法直接实现 Certificate Pinning（浏览器不支持）
+// 但可以通过 Public Key Pinning 思想增强安全性
+
+// 方案一：HPKP（已废弃，不推荐）
+// 方案二：使用自定义 HTTPS 代理验证证书
+
+// 方案三（移动端）：App 端实现证书钉扎
+// Android: OkHttp CertificatePinner
+// iOS: URLSession delegate 验证证书
+
+// 前端替代方案：验证关键 API 响应的签名
+async function fetchWithVerification(url) {
+  const response = await fetch(url);
+  const signature = response.headers.get('X-Response-Signature');
+  const data = await response.text();
+  
+  // 使用预置公钥验证签名
+  const verified = await verifySignature(data, signature, PUBLIC_KEY);
+  if (!verified) {
+    throw new Error('响应签名验证失败，可能被篡改');
+  }
+  return JSON.parse(data);
+}</code></pre>
+
+        <h3 class="subsection-title">示例五：Let's Encrypt 自动化部署</h3>
+        <pre><code class="code-label">bash</code># 使用 Certbot 自动获取和续签证书
+# 安装
+sudo apt install certbot python3-certbot-nginx
+
+# 获取证书
+sudo certbot --nginx -d example.com -d www.example.com
+
+# 自动续签（Certbot 自动添加 cron）
+sudo certbot renew --dry-run
+
+# Docker 方式
+docker run -it --rm \
+  -v /etc/letsencrypt:/etc/letsencrypt \
+  -v /var/www/html:/var/www/html \
+  certbot/certbot certonly --webroot \
+  -w /var/www/html -d example.com
+
+# Nginx 配置自动续签后的重载
+# /etc/letsencrypt/renewal-hooks deploy:
+# systemctl reload nginx</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">HTTPS 会影响性能吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>TLS 握手增加 1~2 个 RTT（TLS 1.3 仅 1 RTT），会话恢复可 0-RTT。加密解密的 CPU 开销在现代硬件上可忽略（AES-NI 硬件加速）。HTTP/2 必须用 HTTPS，且性能优于 HTTP/1.1。总体而言：HTTPS 性能损耗很小，安全收益巨大。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">自签名证书能用于生产环境吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>不能。自签名证书不受浏览器信任，会显示安全警告。用户可能被训练成忽略警告，导致真正的钓鱼攻击无法识别。生产环境使用 CA 签发的证书（Let's Encrypt 免费获取）。自签名仅用于本地开发。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 HSTS preload 不可轻易撤销</div>
+          <p>加入 HSTS preload 列表后，需要提交删除请求才能移除，过程可能需要数周。在确定网站长期支持 HTTPS 之前，不要添加 preload。先用较短的 max-age（如 300）测试。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ HTTPS 页面中不能有 HTTP 资源</div>
+          <p>混合内容会被浏览器阻止（主动内容）或标记警告（被动内容）。迁移到 HTTPS 时，确保所有资源（图片、脚本、字体、API）都使用 HTTPS。CSP 的 upgrade-insecure-requests 可以自动升级，但第三方资源需确认支持 HTTPS。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/Security/Transport_Layer_Security" target="_blank">MDN - TLS</a></li>
+          <li><a href="https://web.dev/articles/why-https-matters" target="_blank">web.dev - 为什么 HTTPS 重要</a></li>
+          <li><a href="https://letsencrypt.org/" target="_blank">Let's Encrypt</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>HTTPS 的工作原理？TLS 握手过程？</div>
+          <div class="iq-hint">HTTPS = HTTP + TLS。TLS 握手：① 客户端发送支持的加密套件和随机数；② 服务器选择套件、返回证书和随机数；③ 客户端验证证书、生成预主密钥并用服务器公钥加密发送；④ 双方根据随机数和预主密钥计算对称密钥；⑤ 后续用对称密钥加密通信。TLS 1.3 优化为 1-RTT。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>什么是 HSTS？为什么需要它？</div>
+          <div class="iq-hint">HSTS（HTTP Strict Transport Security）告诉浏览器在指定时间内始终使用 HTTPS 访问网站。需要它的原因：首次访问 HTTP 时可能被中间人劫持（SSL Stripping），HSTS 让浏览器记住必须用 HTTPS，跳过 HTTP 直接访问 HTTPS。preload 机制解决首次访问问题。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

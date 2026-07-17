@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作用域与闭包 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="js-scope-closure">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>JavaScript 核心</span><span class="sep">/</span><span>作用域与闭包</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">JavaScript</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">作用域与闭包</h1>
+        <p class="page-subtitle">作用域决定了变量的可见范围，闭包是作用域链的延伸应用——理解它们，就理解了 JavaScript 中变量查找、内存管理和模块化的核心机制。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>作用域（Scope）</strong>是变量和函数的可访问范围。JavaScript 采用<strong>词法作用域</strong>（Lexical Scoping），即函数的作用域在<strong>定义时</strong>就确定了，而非调用时。</p>
+        <p><strong>执行上下文（Execution Context）</strong>是代码执行时的环境，包含变量对象、作用域链和 this。全局代码有全局执行上下文，每次函数调用创建新的函数执行上下文，形成调用栈。</p>
+        <p><strong>闭包（Closure）</strong>是函数与其词法环境的组合。当一个函数引用了外部函数的变量，即使外部函数已执行完毕，这些变量也不会被回收——它们被闭包"记住"了。闭包不是刻意创建的语法特性，而是词法作用域的自然结果。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 三种作用域</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>作用域类型</th><th>说明</th><th>示例</th></tr></thead>
+            <tbody>
+              <tr><td>全局作用域</td><td>在最外层定义的变量，任何位置都可访问</td><td><code>var global = 1;</code></td></tr>
+              <tr><td>函数作用域</td><td>在函数内部定义的变量，只有函数内可访问</td><td><code>function f() { var x = 1; }</code></td></tr>
+              <tr><td>块级作用域</td><td>由 {} 界定，let/const 声明的变量受此限制</td><td><code>{ let y = 2; }</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-tip">
+          <div class="callout-title">💡 var vs let/const</div>
+          <p><code>var</code> 只有全局和函数作用域，没有块级作用域。<code>let</code>/<code>const</code> 有块级作用域，且存在<strong>暂时性死区</strong>（TDZ）：从块开始到声明语句之间不可访问。</p>
+        </div>
+
+        <h3 class="subsection-title">2.2 作用域链</h3>
+        <p>当访问一个变量时，引擎首先在当前作用域查找，找不到则沿作用域链向上查找（父级→祖父级→...→全局），直到找到或到达全局作用域仍未找到则抛出 ReferenceError。作用域链在函数<strong>定义时</strong>确定，与调用位置无关。</p>
+        <pre><code class="code-label">JavaScript</code>let global = 'G';
+function outer() {
+  let outerVar = 'O';
+  function inner() {
+    let innerVar = 'I';
+    console.log(innerVar); // 'I' — 当前作用域
+    console.log(outerVar); // 'O' — 外层作用域
+    console.log(global);   // 'G' — 全局作用域
+  }
+  inner();
+}</code></pre>
+
+        <h3 class="subsection-title">2.3 执行上下文与调用栈</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>阶段</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>创建阶段</td><td>创建变量对象（VO）：扫描声明 → var 变量提升（赋 undefined）→ 函数声明提升（赋函数体）→ 确定作用域链 → 确定 this</td></tr>
+              <tr><td>执行阶段</td><td>逐行执行代码，变量赋值、函数调用、表达式求值</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>每次函数调用创建新的执行上下文并压入调用栈，函数返回后弹出。递归过深会导致栈溢出（Stack Overflow）。</p>
+
+        <h3 class="subsection-title">2.4 闭包的工作机制</h3>
+        <p>闭包的本质：函数在创建时会捕获其词法环境中的变量引用。当内部函数被返回到外部并调用时，它仍然能访问外部函数的变量——因为外部函数的变量对象（VO）被内部函数的 [[Scope]] 属性引用着，不会被垃圾回收。</p>
+        <pre><code class="code-label">JavaScript</code>function createCounter() {
+  let count = 0; // 这个变量被闭包"捕获"
+  return {
+    increment() { return ++count; },
+    decrement() { return --count; },
+    getCount() { return count; }
+  };
+}
+const counter = createCounter();
+// createCounter 已执行完毕，但 count 仍被闭包持有
+counter.increment(); // 1
+counter.increment(); // 2
+counter.getCount();  // 2</code></pre>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：var 的变量提升与循环陷阱</h3>
+        <pre><code class="code-label">JavaScript</code>// ❌ 经典陷阱：var 没有块级作用域
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100);
+}
+// 输出：3, 3, 3（因为 i 是函数级作用域，循环结束后 i=3）
+
+// ✅ 方案1：使用 let（块级作用域，每次迭代新的绑定）
+for (let i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100);
+}
+// 输出：0, 1, 2
+
+// ✅ 方案2：IIFE 创建闭包
+for (var i = 0; i < 3; i++) {
+  (function(j) {
+    setTimeout(() => console.log(j), 100);
+  })(i);
+}
+
+// ✅ 方案3：setTimeout 第三参数（利用闭包传参）
+for (var i = 0; i < 3; i++) {
+  setTimeout((j) => console.log(j), 100, i);
+}</code></pre>
+
+        <h3 class="subsection-title">示例二：闭包实现模块模式</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 模块模式：利用闭包实现私有变量和公共接口
+ */
+const UserModule = (function() {
+  // 私有变量（外部无法直接访问）
+  let users = [];
+  let nextId = 1;
+
+  // 私有方法
+  function generateId() {
+    return nextId++;
+  }
+
+  // 返回公共接口
+  return {
+    add(name) {
+      const user = { id: generateId(), name };
+      users.push(user);
+      return user;
+    },
+    findById(id) {
+      return users.find(u => u.id === id);
+    },
+    getAll() {
+      return [...users]; // 返回副本，避免外部修改
+    },
+    get count() {
+      return users.length;
+    }
+  };
+})();
+
+UserModule.add('Alice');
+UserModule.add('Bob');
+console.log(UserModule.count);     // 2
+console.log(UserModule.getAll());   // [{id:1, name:'Alice'}, {id:2, name:'Bob'}]</code></pre>
+
+        <h3 class="subsection-title">示例三：闭包实现函数柯里化</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 柯里化：将多参数函数转为一系列单参数函数
+ */
+function curry(fn) {
+  return function curried(...args) {
+    if (args.length >= fn.length) {
+      return fn.apply(this, args);
+    }
+    return function(...moreArgs) {
+      return curried.apply(this, args.concat(moreArgs));
+    };
+  };
+}
+
+// 使用
+function add(a, b, c) { return a + b + c; }
+const curriedAdd = curry(add);
+
+console.log(curriedAdd(1)(2)(3));    // 6
+console.log(curriedAdd(1, 2)(3));    // 6
+console.log(curriedAdd(1)(2, 3));    // 6
+
+// 实际应用：配置化函数
+const multiply = curry((a, b) => a * b);
+const double = multiply(2);   // 闭包持有 a=2
+const triple = multiply(3);   // 闭包持有 a=3
+console.log(double(5));       // 10
+console.log(triple(5));       // 15</code></pre>
+
+        <h3 class="subsection-title">示例四：闭包实现防抖函数</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 防抖：在事件停止触发 n 毫秒后才执行
+ * 闭包持有 timer 引用，每次调用清除旧定时器
+ */
+function debounce(fn, delay = 300) {
+  let timer = null; // 闭包变量
+  return function(...args) {
+    clearTimeout(timer); // 清除上次的定时器
+    timer = setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
+}
+
+// 使用
+const handleSearch = debounce((query) => {
+  console.log('搜索:', query);
+  // fetch(`/api/search?q=${query}`)
+}, 500);
+
+// 输入框绑定
+// input.addEventListener('input', (e) => handleSearch(e.target.value));</code></pre>
+
+        <h3 class="subsection-title">示例五：闭包的内存管理与常见泄漏</h3>
+        <pre><code class="code-label">JavaScript</code>// ❌ 闭包导致内存泄漏：意外引用
+function setup() {
+  const hugeData = new Array(1000000).fill('*'); // 大数据
+  const name = 'test';
+  
+  // 这个闭包只用了 name，但引擎可能不会释放 hugeData
+  return function() {
+    console.log(name);
+  };
+}
+
+// ✅ 最佳实践：只捕获必要的变量
+function setupFixed() {
+  const hugeData = new Array(1000000).fill('*');
+  // 先处理大数据，只保留需要的结果
+  const summary = hugeData.length;
+  // hugeData 在此之后可以被回收
+  
+  return function() {
+    console.log(summary); // 只捕获 summary
+  };
+}
+
+// ❌ 事件监听器未移除
+function attachHandler() {
+  const element = document.getElementById('btn');
+  const data = { /* 大量数据 */ };
+  element.addEventListener('click', () => {
+    console.log(data); // 闭包持有 data 和 element
+  });
+  // 忘记移除监听器 → element 和 data 都无法回收
+}
+
+// ✅ 及时清理
+function attachHandlerFixed() {
+  const element = document.getElementById('btn');
+  const data = { /* 大量数据 */ };
+  const handler = () => console.log(data);
+  element.addEventListener('click', handler);
+  
+  // 不需要时移除
+  return () => element.removeEventListener('click', handler);
+}</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">闭包会导致内存泄漏吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>闭包本身不是内存泄漏，它只是让变量生命周期延长。真正的"泄漏"是：闭包持有了一个巨大对象但只用到其中一个属性，导致整个对象无法回收。解决方案：只提取需要的值，不要让闭包捕获整个对象。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">let 的暂时性死区（TDZ）是什么？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>从块级作用域开始到 let/const 声明语句之间，变量存在但不可访问，称为 TDZ。此时访问会抛出 ReferenceError。<code>console.log(x); let x = 1;</code> 会报错。TDZ 的意义是让声明更严谨，避免在声明前使用变量。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">词法作用域和动态作用域的区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>词法作用域在<strong>定义时</strong>确定，函数的变量查找沿定义时的嵌套结构向外。动态作用域在<strong>调用时</strong>确定，函数的变量查找沿调用栈向外。JavaScript 是词法作用域，this 的绑定机制类似动态作用域但不是一回事。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 循环中的 var + 异步回调是最常见的闭包 Bug</div>
+          <p>使用 <code>var</code> 在 for 循环中创建异步回调时，所有回调共享同一个变量。解决方案：用 <code>let</code> 替换 <code>var</code>（推荐），或用 IIFE / bind 创建新闭包。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ 函数声明与函数表达式的提升差异</div>
+          <p>函数声明整体提升（包括函数体）：<code>foo(); function foo() {}</code> 正常运行。函数表达式只提升变量名：<code>bar(); var bar = function() {};</code> 报 TypeError，因为 bar 此时是 undefined。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Closures" target="_blank">MDN - 闭包</a></li>
+          <li><a href="https://zh.javascript.info/closure" target="_blank">现代 JavaScript 教程 - 闭包</a></li>
+          <li><a href="https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/README.md" target="_blank">You Don't Know JS - Scope & Closures</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>什么是闭包？请举一个实际应用场景。</div>
+          <div class="iq-hint">闭包是函数与其词法环境的组合，使函数能访问定义时的外部变量。实际应用：① 数据私有化（模块模式）；② 函数工厂（柯里化、偏函数）；③ 回调函数保留上下文（事件处理、定时器）；④ 防抖/节流。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>下面代码输出什么？为什么？</div>
+          <div class="iq-hint"><code>for (var i = 0; i < 3; i++) { setTimeout(() => console.log(i), 0); }</code> 输出 3, 3, 3。因为 var 是函数作用域，三个回调共享同一个 i；setTimeout 是异步，执行时循环已结束，i=3。用 let 替换 var 可修复。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>词法作用域和动态作用域有什么区别？</div>
+          <div class="iq-hint">词法作用域在函数定义时确定，变量查找沿定义时的嵌套结构。动态作用域在函数调用时确定，沿调用栈查找。JS 是词法作用域。this 的绑定看起来像动态作用域，但 this 不是变量查找机制，而是调用模式决定的。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

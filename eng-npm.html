@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>包管理器 npm/yarn - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="eng-npm">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>前端工程化</span><span class="sep">/</span><span>包管理器 npm/yarn</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">工程化</span><span class="tag tag-basic">初级</span></div>
+        <h1 class="page-title">包管理器 npm/yarn</h1>
+        <p class="page-subtitle">包管理器是前端工程化的基础设施——理解依赖管理、语义版本、锁文件和包发布，是从"写代码"到"做项目"的关键一步。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>npm（Node Package Manager）</strong>是 Node.js 的默认包管理器，拥有世界上最大的开源注册表。<strong>yarn</strong>是 Facebook 推出的替代方案，解决了早期 npm 的性能和安全问题。现代 npm 已大幅改进，两者差距缩小。</p>
+        <p><strong>pnpm</strong>是新一代包管理器，通过硬链接和符号链接共享依赖，节省磁盘空间，安装速度更快，且严格隔离依赖。</p>
+        <p>包管理器的核心职责：下载/安装依赖、管理依赖版本、解析依赖树、执行脚本、发布包。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 包管理器对比</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>特性</th><th>npm</th><th>yarn</th><th>pnpm</th></tr></thead>
+            <tbody>
+              <tr><td>锁文件</td><td>package-lock.json</td><td>yarn.lock</td><td>pnpm-lock.yaml</td></tr>
+              <tr><td>安装策略</td><td>扁平 node_modules</td><td>扁平 node_modules</td><td>硬链接 + 符号链接</td></tr>
+              <tr><td>幽灵依赖</td><td>有</td><td>有</td><td>无（严格隔离）</td></tr>
+              <tr><td>工作区</td><td>支持（npm 7+）</td><td>支持</td><td>支持</td></tr>
+              <tr><td>缓存</td><td>本地缓存</td><td>本地缓存 + 离线安装</td><td>全局 store + 硬链接</td></tr>
+              <tr><td>磁盘占用</td><td>高（每项目独立）</td><td>高</td><td>低（全局共享）</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 语义版本（SemVer）</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>版本号</th><th>含义</th><th>示例</th></tr></thead>
+            <tbody>
+              <tr><td><code>MAJOR.MINOR.PATCH</code></td><td>主版本.次版本.补丁版本</td><td><code>2.3.1</code></td></tr>
+              <tr><td>MAJOR 变更</td><td>不兼容的 API 变更</td><td>1.x → 2.0.0</td></tr>
+              <tr><td>MINOR 变更</td><td>向后兼容的新功能</td><td>2.3.x → 2.4.0</td></tr>
+              <tr><td>PATCH 变更</td><td>向后兼容的 Bug 修复</td><td>2.3.0 → 2.3.1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>范围语法</th><th>含义</th><th>匹配示例</th></tr></thead>
+            <tbody>
+              <tr><td><code>^2.3.1</code></td><td>兼容 2.x（允许 MINOR 和 PATCH 升级）</td><td>2.3.1 ~ 2.99.99</td></tr>
+              <tr><td><code>~2.3.1</code></td><td>兼容 2.3.x（仅允许 PATCH 升级）</td><td>2.3.1 ~ 2.3.99</td></tr>
+              <tr><td><code>&gt;=2.0.0</code></td><td>大于等于</td><td>2.0.0+</td></tr>
+              <tr><td><code>2.x</code></td><td>2 的任意次版本</td><td>2.0.0 ~ 2.99.99</td></tr>
+              <tr><td><code>latest</code></td><td>最新发布版本</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 依赖类型</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>类型</th><th>字段</th><th>安装时机</th><th>示例</th></tr></thead>
+            <tbody>
+              <tr><td>生产依赖</td><td><code>dependencies</code></td><td>npm install</td><td>vue, axios, lodash</td></tr>
+              <tr><td>开发依赖</td><td><code>devDependencies</code></td><td>npm install（非 --production）</td><td>webpack, eslint, jest</td></tr>
+              <tr><td>对等依赖</td><td><code>peerDependencies</code></td><td>不自动安装，警告缺失</td><td>vue（插件要求的宿主版本）</td></tr>
+              <tr><td>可选依赖</td><td><code>optionalDependencies</code></td><td>安装失败不报错</td><td>fsevents（macOS 专属）</td></tr>
+              <tr><td>捆绑依赖</td><td><code>bundledDependencies</code></td><td>随包一起发布</td><td>特定内嵌模块</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 幽灵依赖问题</h3>
+        <p>npm/yarn 的扁平 node_modules 结构会导致<strong>幽灵依赖</strong>：项目可以 import 未在 package.json 中声明的包（因为它们被其他依赖提升到了顶层）。pnpm 通过严格的依赖隔离解决了此问题。</p>
+        <pre><code class="code-label">text">node_modules/
+├── express/        ← package.json 声明的依赖
+├── body-parser/    ← express 的依赖（被提升）
+├── qs/             ← body-parser 的依赖（被提升）← 幽灵依赖！
+└── ...
+
+// 项目代码中可以直接 import qs，但 package.json 没有声明
+// 如果 express 升级去掉了 body-parser，qs 就消失了，项目报错</code></pre>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：package.json 完整配置</h3>
+        <pre><code class="code-label">JSON</code>{
+  "name": "my-project",
+  "version": "1.0.0",
+  "description": "项目描述",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .js,.vue",
+    "test": "vitest",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.0",
+    "pinia": "^2.1.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "eslint": "^8.56.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}</code></pre>
+
+        <h3 class="subsection-title">示例二：npm scripts 进阶</h3>
+        <pre><code class="code-label">JSON</code>{
+  "scripts": {
+    // 串行执行（&& 前一个失败则停止）
+    "build:all": "npm run build:css && npm run build:js",
+    
+    // 并行执行（& 同时运行）
+    "dev:all": "npm run dev:css & npm run dev:js",
+    
+    // 跨平台并行（使用 npm-run-all）
+    "dev": "run-p dev:*",
+    
+    // 前置/后置钩子
+    "prebuild": "npm run clean",
+    "build": "vite build",
+    "postbuild": "npm run report",
+    
+    // 传递参数（-- 分隔）
+    // npm run test -- --watch
+    "test": "vitest",
+    
+    // 使用环境变量
+    "build:staging": "VITE_ENV=staging vite build",
+    
+    // 引用其他脚本
+    "clean": "rimraf dist",
+    "report": "echo 'Build complete!'"
+  }
+}</code></pre>
+
+        <h3 class="subsection-title">示例三：npm 工作区（Monorepo）</h3>
+        <pre><code class="code-label">JSON</code>// 根 package.json
+{
+  "name": "my-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "eslint packages/*/src"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
+}
+
+// packages/ui/package.json
+{
+  "name": "@my-org/ui",
+  "version": "1.0.0",
+  "dependencies": {
+    "vue": "^3.4.0"
+  }
+}
+
+// packages/utils/package.json
+{
+  "name": "@my-org/utils",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
+
+// 常用命令
+// npm install -w @my-org/ui lodash  → 给 ui 包添加依赖
+// npm run build -w @my-org/ui       → 在 ui 包执行构建</code></pre>
+
+        <h3 class="subsection-title">示例四：发布 npm 包</h3>
+        <pre><code class="code-label">bash</code># 1. 登录 npm
+npm login
+
+# 2. 检查包名是否可用
+npm search my-package-name
+
+# 3. 发布前的检查
+npm pack --dry-run  # 预览将发布的文件
+npm publish --dry-run  # 模拟发布流程
+
+# 4. 发布
+npm publish
+npm publish --access public  # 作用域包默认私有，需指定公开
+
+# 5. 发测试版本（预发布）
+npm version prerelease --preid=beta  # 1.0.0 → 1.0.1-beta.0
+npm publish --tag beta
+# 安装测试版：npm install my-package@beta
+
+# 6. 版本升级
+npm version patch  # 1.0.0 → 1.0.1
+npm version minor  # 1.0.0 → 1.1.0
+npm version major  # 1.0.0 → 2.0.0
+
+# 7. 废弃/撤销
+npm deprecate my-package@"&lt;2.0.0" "请升级到 v2"
+npm unpublish my-package@1.0.0  # 24小时内可撤销</code></pre>
+
+        <h3 class="subsection-title">示例五：.npmrc 配置</h3>
+        <pre><code class="code-label">ini</code># 项目级 .npmrc（放在项目根目录）
+# 使用国内镜像加速
+registry=https://registry.npmmirror.com
+
+# 私有包注册表
+@my-org:registry=https://npm.my-company.com
+
+# 认证 token
+//npm.my-company.com/:_authToken=${NPM_TOKEN}
+
+# 严格引擎检查
+engine-strict=true
+
+# 忽略可选依赖
+optional=false
+
+# 全局 .npmrc（~/.npmrc）
+# 设置默认 registry
+registry=https://registry.npmjs.org
+# 设置缓存目录
+cache=~/.npm_cache
+# 设置代理
+# proxy=http://proxy.example.com:8080
+# https-proxy=http://proxy.example.com:8080</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">package-lock.json 要提交到 Git 吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>必须提交！锁文件确保所有环境安装相同版本的依赖，避免"我本地能跑"的问题。唯一例外：库项目（library）可能不需要锁文件，因为使用者应该获取最新兼容版本。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">npm install 和 npm ci 的区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>npm install：根据 package.json 解析依赖，可能更新 lockfile，安装速度较慢。npm ci：严格按 lockfile 安装，不修改 lockfile，安装前删除 node_modules，速度更快且可复现。CI/CD 环境推荐用 npm ci。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">依赖安装失败怎么排查？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>步骤：① 删除 node_modules 和 lockfile 重新安装；② 检查 Node.js 版本是否符合 engines 要求；③ 检查网络/代理配置（.npmrc）；④ 检查是否有 Python/build-tools 依赖（node-gyp）；⑤ 用 --verbose 查看详细日志；⑥ 检查注册表是否可用。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 不要滥用 --force</div>
+          <p><code>npm install --force</code> 会绕过所有安全检查，可能导致安装不兼容的版本。应该先理解报错原因，针对性解决，而非暴力强制。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ 全局安装 vs 项目本地安装</div>
+          <p>构建工具（webpack、vite、eslint）应安装为 devDependencies，通过 npx 或 npm scripts 运行。全局安装仅用于跨项目的 CLI 工具（如 pm2、serve）。全局安装的版本可能与项目不兼容。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://docs.npmjs.com/" target="_blank">npm 官方文档</a></li>
+          <li><a href="https://semver.org/lang/zh-CN/" target="_blank">语义版本规范</a></li>
+          <li><a href="https://pnpm.io/zh/motivation" target="_blank">pnpm 设计动机</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>npm、yarn、pnpm 有什么区别？</div>
+          <div class="iq-hint">npm：Node.js 默认，扁平 node_modules，有幽灵依赖。yarn：并行安装、离线缓存、确定性安装。pnpm：硬链接共享存储（节省磁盘）、严格依赖隔离（无幽灵依赖）、安装最快。新项目推荐 pnpm。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>什么是幽灵依赖？怎么解决？</div>
+          <div class="iq-hint">扁平 node_modules 让未声明的包可被 import。解决方案：① 使用 pnpm（严格隔离依赖）；② 使用 eslint-plugin-import 检测未声明依赖；③ 开启 npm 的 --install-strategy=nested。pnpm 是最彻底的方案。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>dependencies 和 devDependencies 的区别？什么时候用哪个？</div>
+          <div class="iq-hint">dependencies：运行时需要的包（vue, axios）。devDependencies：仅开发时需要的包（webpack, eslint, jest）。库项目要注意：npm install 时 devDependencies 不安装，所以构建工具应放 devDependencies，运行时依赖放 dependencies。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

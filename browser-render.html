@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>浏览器渲染原理 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="browser-render">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>浏览器与网络</span><span class="sep">/</span><span>浏览器渲染原理</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">浏览器</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">浏览器渲染原理</h1>
+        <p class="page-subtitle">理解浏览器如何将 HTML/CSS/JS 变为像素画面的完整过程——从 DOM 树构建到合成层输出，这是性能优化的理论基础。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>浏览器渲染</strong>是将 HTML、CSS 和 JavaScript 代码转换为用户可见的像素画面的过程。这个过程由浏览器的渲染引擎（如 Chrome 的 Blink、Safari 的 WebKit）完成。</p>
+        <p>渲染流程可以概括为：<strong>解析 → 构建 → 布局 → 绘制 → 合成</strong>。理解每个阶段的作用和触发条件，才能针对性地进行性能优化。</p>
+        <p>其中最重要的概念是<strong>重排（Reflow）</strong>和<strong>重绘（Repaint）</strong>：重排涉及重新计算布局，代价高昂；重绘只重新绘制外观，代价较低。两者都会影响性能，应尽量减少触发次数。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 渲染流水线（Rendering Pipeline）</h3>
+        <pre><code class="code-label">text">HTML ──→ DOM Tree ──→ ┐
+                       ├→ Render Tree → Layout → Paint → Composite → 像素
+CSS  ──→ CSSOM  ──→ ┘
+JS  ──→ 可能修改 DOM/CSSOM，触发重新渲染</code></pre>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>阶段</th><th>作用</th><th>触发条件</th></tr></thead>
+            <tbody>
+              <tr><td>解析（Parse）</td><td>HTML → DOM 树，CSS → CSSOM 树</td><td>加载 HTML/CSS</td></tr>
+              <tr><td>样式计算（Style）</td><td>计算每个节点的最终样式值</td><td>样式变化</td></tr>
+              <tr><td>布局（Layout）</td><td>计算节点的几何信息（位置、大小）</td><td>几何属性变化</td></tr>
+              <tr><td>绘制（Paint）</td><td>将节点绘制到多个图层</td><td>视觉属性变化</td></tr>
+              <tr><td>合成（Composite）</td><td>将图层合成最终画面</td><td>transform/opacity 变化</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 DOM 树与 CSSOM</h3>
+        <p><strong>DOM（文档对象模型）</strong>：HTML 解析后生成的树形结构，每个 HTML 标签对应一个节点。DOM 树描述了页面的内容结构。</p>
+        <p><strong>CSSOM（CSS 对象模型）</strong>：CSS 解析后生成的树形结构，描述样式规则。CSSOM 与 DOM 结合生成<strong>渲染树（Render Tree）</strong>。</p>
+        <p>注意：display:none 的元素在渲染树中不存在，visibility:hidden 的元素存在但不可见。</p>
+
+        <h3 class="subsection-title">2.3 重排与重绘</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>操作类型</th><th>触发阶段</th><th>性能影响</th><th>示例属性</th></tr></thead>
+            <tbody>
+              <tr><td>重排（Reflow）</td><td>Layout + Paint + Composite</td><td>高</td><td>width, height, top, left, margin, font-size</td></tr>
+              <tr><td>重绘（Repaint）</td><td>Paint + Composite</td><td>中</td><td>color, background, visibility, box-shadow</td></tr>
+              <tr><td>合成层（Composite）</td><td>仅 Composite</td><td>低</td><td>transform, opacity</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 JS 阻塞与 CSS 阻塞</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>资源类型</th><th>阻塞行为</th><th>原因</th></tr></thead>
+            <tbody>
+              <tr><td>CSS</td><td>阻塞渲染</td><td>CSSOM 未构建完成不会渲染页面（避免 FOUC）</td></tr>
+              <tr><td>JS（无 defer/async）</td><td>阻塞 DOM 解析</td><td>JS 可能修改 DOM，必须等待 JS 执行完</td></tr>
+              <tr><td>JS + CSS</td><td>JS 等待 CSS</td><td>JS 可能读取样式属性，需等 CSSOM 完成</td></tr>
+              <tr><td>JS (defer)</td><td>不阻塞解析，DOMContentLoaded 前执行</td><td>按顺序执行，DOM 解析完后执行</td></tr>
+              <tr><td>JS (async)</td><td>不阻塞解析，下载完立即执行</td><td>不保证顺序，适合独立脚本</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.5 合成层与 GPU 加速</h3>
+        <p>当元素满足特定条件时，浏览器会将其提升为独立的<strong>合成层（Compositing Layer）</strong>，由 GPU 单独处理。合成层的变换（transform、opacity）不触发布局和绘制，性能极高。</p>
+        <p>触发合成层的条件：3D transform、will-change、video/canvas/iframe、fixed 定位、animation/transition 中的 transform/opacity、被其他合成层覆盖等。</p>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：减少重排的批量 DOM 操作</h3>
+        <pre><code class="code-label">JavaScript</code>// ❌ 每次修改都触发重排
+for (let i = 0; i < 100; i++) {
+  const el = document.createElement('div');
+  el.style.width = '100px';
+  el.style.height = '100px';
+  container.appendChild(el); // 每次插入都触发重排
+}
+
+// ✅ 方案1：DocumentFragment（推荐）
+const fragment = document.createDocumentFragment();
+for (let i = 0; i < 100; i++) {
+  const el = document.createElement('div');
+  el.style.width = '100px';
+  el.style.height = '100px';
+  fragment.appendChild(el); // fragment 内操作不触发重排
+}
+container.appendChild(fragment); // 仅一次重排
+
+// ✅ 方案2：离线 DOM
+const clone = container.cloneNode(true); // 克隆
+for (let i = 0; i < 100; i++) {
+  const el = document.createElement('div');
+  clone.appendChild(el);
+}
+container.parentNode.replaceChild(clone, container); // 一次替换</code></pre>
+
+        <h3 class="subsection-title">示例二：读写分离避免强制重排</h3>
+        <pre><code class="code-label">JavaScript</code>// ❌ 读写交替：每次读取布局属性都会强制重排
+const elements = document.querySelectorAll('.item');
+elements.forEach(el => {
+  const height = el.offsetHeight; // 读 → 强制重排
+  el.style.height = height + 10 + 'px'; // 写
+});
+// 每次循环都有一次重排：N 次重排
+
+// ✅ 读写分离：先读完所有值，再统一写
+const reads = [];
+elements.forEach(el => {
+  reads.push(el.offsetHeight); // 只读，浏览器会批量处理
+});
+elements.forEach((el, i) => {
+  el.style.height = reads[i] + 10 + 'px'; // 统一写
+});
+// 仅 1 次重排</code></pre>
+
+        <h3 class="subsection-title">示例三：使用 transform 替代 top/left 做动画</h3>
+        <pre><code class="code-label">CSS</code>/* ❌ 使用 top/left：触发 Layout → Paint → Composite */
+.move-bad {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: top 0.3s, left 0.3s;
+}
+.move-bad:hover {
+  top: 100px;
+  left: 100px;
+}
+
+/* ✅ 使用 transform：仅触发 Composite（GPU 加速） */
+.move-good {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 0.3s;
+  will-change: transform; /* 提前提升合成层 */
+}
+.move-good:hover {
+  transform: translate(100px, 100px);
+}</code></pre>
+
+        <h3 class="subsection-title">示例四：script 标签的加载策略</h3>
+        <pre><code class="code-label">HTML</code>&lt;!-- ❌ 阻塞 DOM 解析 --&gt;
+&lt;script src="app.js"&gt;&lt;/script&gt;
+
+&lt;!-- ✅ defer：不阻塞解析，DOM 解析完后按序执行 --&gt;
+&lt;script src="app.js" defer&gt;&lt;/script&gt;
+
+&lt;!-- ✅ async：不阻塞解析，下载完立即执行（不保证顺序） --&gt;
+&lt;script src="analytics.js" async&gt;&lt;/script&gt;
+
+&lt;!-- ✅ 最佳实践 --&gt;
+&lt;head&gt;
+  &lt;!-- 关键 CSS 内联 --&gt;
+  &lt;style&gt;body{margin:0;font-family:sans-serif}&lt;/style&gt;
+  &lt;!-- 非关键 CSS 异步加载 --&gt;
+  &lt;link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'"&gt;
+  &lt;!-- 关键 JS 用 defer --&gt;
+  &lt;script src="critical.js" defer&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!-- 非关键 JS 用 async 或放 body 底部 --&gt;
+  &lt;script src="analytics.js" async&gt;&lt;/script&gt;
+&lt;/body&gt;</code></pre>
+
+        <h3 class="subsection-title">示例五：使用 Performance API 分析渲染性能</h3>
+        <pre><code class="code-label">JavaScript</code>// 使用 PerformanceObserver 监测长任务
+const observer = new PerformanceObserver((list) => {
+  for (const entry of list.getEntries()) {
+    if (entry.duration > 50) {
+      console.warn(`长任务检测: ${entry.duration.toFixed(1)}ms`, entry);
+    }
+  }
+});
+observer.observe({ type: 'longtask', buffered: true });
+
+// 测量布局耗时
+performance.mark('layout-start');
+element.style.width = '500px'; // 触发重排
+const height = element.offsetHeight; // 强制同步布局
+performance.mark('layout-end');
+performance.measure('layout', 'layout-start', 'layout-end');
+const measure = performance.getEntriesByName('layout')[0];
+console.log(`布局耗时: ${measure.duration.toFixed(2)}ms`);
+
+// 监测 LCP（Largest Contentful Paint）
+const lcpObserver = new PerformanceObserver((list) => {
+  const entries = list.getEntries();
+  const lastEntry = entries[entries.length - 1];
+  console.log('LCP:', lastEntry.renderTime || lastEntry.loadTime);
+});
+lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">什么是强制同步布局（Layout Thrashing）？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>在 JS 中先修改 DOM 触发布局标记（dirty），然后立即读取布局属性（offsetHeight、getBoundingClientRect 等），浏览器被迫立即执行布局计算。如果在循环中反复读写交替，会造成多次重排，严重影响性能。解决方案：读写分离。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">will-change 能提升性能吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>will-change 提前告知浏览器哪些属性即将变化，浏览器可提前创建合成层。但它消耗 GPU 内存，滥用会导致层爆炸。正确用法：在即将动画前设置，动画结束后移除。不要在全局样式中使用。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">为什么说"操作 DOM 很慢"？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>DOM 操作本身不慢，慢的是操作后触发的重排和重绘。JS 引擎和渲染引擎是独立的，每次 DOM 修改都可能触发渲染引擎的完整流水线。此外，频繁访问 DOM 属性会导致 JS 引擎和渲染引擎之间频繁通信（跨引擎边界）。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 避免在动画中使用触发重排的属性</div>
+          <p>动画中绝不能使用 width、height、top、left、margin、padding 等触发 Layout 的属性。始终用 transform 和 opacity，它们只触发 Composite 阶段，由 GPU 处理，性能差距可达 10 倍以上。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ CSS 在头部，JS 在底部</div>
+          <p>CSS 应放在 &lt;head&gt; 中尽早加载，避免 FOUC（无样式闪烁）。JS 应使用 defer/async 或放在 &lt;body&gt; 底部，避免阻塞 DOM 解析。这条规则是首屏性能优化的基础。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developers.google.com/web/fundamentals/performance/critical-rendering-path" target="_blank">Google - 关键渲染路径</a></li>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/Performance/How_browsers_work" target="_blank">MDN - 浏览器工作原理</a></li>
+          <li><a href="https://web.dev/articles/rendering-performance" target="_blank">web.dev - 渲染性能</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>请描述浏览器从输入 URL 到页面渲染的完整过程。</div>
+          <div class="iq-hint">DNS 解析 → TCP 连接 → HTTP 请求 → 响应 → HTML 解析构建 DOM 树 → CSS 解析构建 CSSOM → 合并生成渲染树 → 布局（计算几何信息）→ 绘制（填充像素）→ 合成（图层合成）。期间遇到 JS 会阻塞 DOM 解析，CSS 会阻塞渲染。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>重排和重绘有什么区别？如何减少？</div>
+          <div class="iq-hint">重排：元素几何属性变化，重新计算布局（代价高）。重绘：外观属性变化，重新绘制（代价较低）。减少方法：① 批量修改 DOM（Fragment）；② 读写分离；③ 用 transform/opacity 替代 top/left；④ 使用 class 切换替代逐条修改样式；⑤ 离线 DOM 操作。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>为什么操作 DOM 慢？</div>
+          <div class="iq-hint">① DOM 在渲染引擎中，JS 在 JS 引擎中，跨引擎通信有开销；② DOM 操作可能触发重排/重绘，需要完整执行渲染流水线；③ DOM 节点可能导致内存泄漏（事件监听器、闭包引用）。现代框架通过虚拟 DOM 减少直接操作。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

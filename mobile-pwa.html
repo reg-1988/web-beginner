@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA 基础 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="mobile-pwa">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>移动端H5</span><span class="sep">/</span><span>PWA 基础</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">移动端</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">PWA 基础</h1>
+        <p class="page-subtitle">PWA 让 Web 应用拥有原生 App 的能力——离线可用、推送通知、安装到桌面，是移动端 H5 进化的方向。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>PWA（Progressive Web App）</strong>不是一种技术，而是一组 Web 技术的集合，目标是让 Web 应用具备原生 App 的体验：可安装、离线可用、推送通知、全屏运行。PWA 是<strong>渐进增强</strong>的——即使浏览器不支持某些特性，应用仍能正常工作。</p>
+        <p>PWA 的三大核心能力：<strong>Service Worker</strong>（离线缓存 + 网络代理）、<strong>Web App Manifest</strong>（安装到桌面）、<strong>Push API</strong>（推送通知）。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 PWA 核心技术</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>技术</th><th>作用</th><th>浏览器支持</th></tr></thead>
+            <tbody>
+              <tr><td>Service Worker</td><td>离线缓存、网络拦截、后台同步</td><td>主流全支持</td></tr>
+              <tr><td>Web App Manifest</td><td>定义应用名称、图标、启动方式</td><td>主流全支持</td></tr>
+              <tr><td>Cache API</td><td>编程式缓存管理</td><td>主流全支持</td></tr>
+              <tr><td>Push API</td><td>服务器推送通知</td><td>Chrome/Firefox/Edge</td></tr>
+              <tr><td>Background Sync</td><td>后台数据同步</td><td>Chrome/Edge</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 Service Worker 生命周期</h3>
+        <pre><code class="code-label">text">注册 → 安装(install) → 等待(waiting) → 激活(activate) → 运行(fetch/push/sync)
+
+install：预缓存关键资源
+waiting：等待旧 SW 控制的页面全部关闭
+activate：清理旧缓存，接管页面
+fetch：拦截网络请求，决定从缓存还是网络获取</code></pre>
+
+        <h3 class="subsection-title">2.3 缓存策略</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>策略</th><th>流程</th><th>适用场景</th></tr></thead>
+            <tbody>
+              <tr><td>Cache First</td><td>缓存优先，失败走网络</td><td>静态资源（JS/CSS/图片）</td></tr>
+              <tr><td>Network First</td><td>网络优先，失败走缓存</td><td>API 数据、HTML 页面</td></tr>
+              <tr><td>Stale While Revalidate</td><td>先返回缓存，同时更新</td><td>非关键数据、配置</td></tr>
+              <tr><td>Cache Only</td><td>仅缓存</td><td>离线页面</td></tr>
+              <tr><td>Network Only</td><td>仅网络</td><td>非 GET 请求</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：Service Worker 注册与基础缓存</h3>
+        <pre><code class="code-label">JavaScript</code>// main.js — 注册 Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      console.log('SW 注册成功:', reg.scope);
+    } catch (err) {
+      console.error('SW 注册失败:', err);
+    }
+  });
+}
+
+// sw.js — Service Worker
+const CACHE_NAME = 'app-v1';
+const PRECACHE_URLS = [
+  '/',
+  '/index.html',
+  '/css/style.css',
+  '/js/main.js',
+  '/offline.html',
+];
+
+// 安装：预缓存关键资源
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting()) // 跳过等待，立即激活
+  );
+});
+
+// 激活：清理旧缓存
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(key => key !== CACHE_NAME)
+            .map(key => caches.delete(key))
+      )
+    ).then(() => self.clients.claim()) // 立即接管页面
+  );
+});
+
+// 拦截请求：Cache First 策略
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(cached => cached || fetch(event.request))
+  );
+});</code></pre>
+
+        <h3 class="subsection-title">示例二：Network First 策略（API 数据）</h3>
+        <pre><code class="code-label">JavaScript</code>// sw.js — Network First 策略
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+
+  // API 请求使用 Network First
+  if (request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          // 成功后缓存响应副本
+          const clone = response.clone();
+          caches.open('api-cache').then(cache => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => {
+          // 网络失败，从缓存读取
+          return caches.match(request).then(cached => {
+            return cached || caches.match('/offline.html');
+          });
+        })
+    );
+    return;
+  }
+
+  // 静态资源使用 Cache First
+  event.respondWith(
+    caches.match(request).then(cached => cached || fetch(request))
+  );
+});</code></pre>
+
+        <h3 class="subsection-title">示例三：Web App Manifest</h3>
+        <pre><code class="code-label">JSON</code>// manifest.json
+{
+  "name": "我的应用",
+  "short_name": "我的App",
+  "description": "一个 PWA 示例应用",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "icons": [
+    { "src": "/icons/icon-72.png", "sizes": "72x72", "type": "image/png" },
+    { "src": "/icons/icon-96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "/icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/icons/icon-152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
+
+// HTML 中引入
+// &lt;link rel="manifest" href="/manifest.json"&gt;
+// &lt;meta name="theme-color" content="#2563eb"&gt;
+// &lt;link rel="apple-touch-icon" href="/icons/icon-152.png"&gt;</code></pre>
+
+        <h3 class="subsection-title">示例四：推送通知</h3>
+        <pre><code class="code-label">JavaScript</code>// 请求通知权限
+async function requestNotificationPermission() {
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    console.log('通知权限已获取');
+    // 订阅推送
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: 'YOUR_VAPID_PUBLIC_KEY',
+    });
+    // 将 subscription 发送到服务器
+    await fetch('/api/push/subscribe', {
+      method: 'POST',
+      body: JSON.stringify(subscription),
+    });
+  }
+}
+
+// sw.js — 处理推送事件
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() ?? { title: '新消息', body: '你有一条新消息' };
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/badge-72.png',
+      vibrate: [100, 50, 100],
+      data: { url: data.url || '/' },
+    })
+  );
+});
+
+// 点击通知
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow(event.notification.data.url)
+  );
+});</code></pre>
+
+        <h3 class="subsection-title">示例五：Workbox 简化配置</h3>
+        <pre><code class="code-label">JavaScript</code>// workbox-config.js（推荐使用 Workbox 简化 SW 开发）
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+
+// 预缓存（由 Workbox 构建时自动注入清单）
+precacheAndRoute(self.__WB_MANIFEST);
+
+// API：Stale While Revalidate
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/'),
+  new StaleWhileRevalidate({ cacheName: 'api-cache' })
+);
+
+// 图片：Cache First + 30天过期
+registerRoute(
+  ({ request }) => request.destination === 'image',
+  new CacheFirst({
+    cacheName: 'image-cache',
+    plugins: [new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 30 * 24 * 3600 })],
+  })
+);
+
+// HTML：Network First
+registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  new NetworkFirst({
+    cacheName: 'html-cache',
+    plugins: [new ExpirationPlugin({ maxEntries: 50 })],
+  })
+);</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Service Worker 更新后用户还是看到旧版本？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>新 SW 安装后进入 waiting 状态，直到所有旧标签页关闭。解决方案：① skipWaiting() 跳过等待（install 事件中调用）；② clients.claim() 立即接管（activate 事件中调用）；③ 提示用户刷新页面。注意：skipWaiting 可能导致新旧代码不一致。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">PWA 在 iOS 上的限制？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>iOS Safari 对 PWA 支持有限：① 推送通知仅 iOS 16.4+ 支持；② 缓存限制 50MB；③ 不支持 Background Sync；④ 添加到主屏后独立存储，与 Safari 数据不共享；⑤ 状态栏颜色等部分 manifest 字段不支持。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 SW 缓存策略选择错误</div>
+          <p>HTML 页面不要用 Cache First（用户永远看到旧页面），API 数据不要用 Cache Only（数据永远不更新）。通用原则：频繁变化的内容用 Network First，稳定的静态资源用 Cache First。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://web.dev/articles/pwa" target="_blank">web.dev - PWA</a></li>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/Progressive_web_apps" target="_blank">MDN - PWA</a></li>
+          <li><a href="https://developers.google.com/web/tools/workbox" target="_blank">Workbox 文档</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>Service Worker 的工作原理？</div>
+          <div class="iq-hint">SW 是独立于页面的 Worker 线程，生命周期：install（预缓存）→ waiting（等待旧SW）→ activate（清理旧缓存、接管页面）→ fetch（拦截请求）。SW 可以拦截所有同源请求，决定从缓存还是网络获取。SW 在页面关闭后仍可运行（处理推送、同步等）。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>PWA 有哪些缓存策略？</div>
+          <div class="iq-hint">Cache First（缓存优先）、Network First（网络优先）、Stale While Revalidate（先缓存后更新）、Cache Only、Network Only。选择原则：静态资源用 Cache First，动态数据用 Network First，可容忍短暂的旧数据用 Stale While Revalidate。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React 基础 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="react-basics">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>框架生态</span><span class="sep">/</span><span>React 基础</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-react">React</span><span class="tag tag-basic">初级</span></div>
+        <h1 class="page-title">React 基础</h1>
+        <p class="page-subtitle">React 用声明式的方式构建 UI——理解 JSX、组件、Props/State 和生命周期，是掌握 React 生态的第一步。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>React</strong>是 Facebook 开源的 UI 构建库，核心思想是 <code>UI = f(state)</code>——UI 是状态的函数映射。React 负责"声明式"地描述 UI 应该是什么样，框架负责高效地更新 DOM。</p>
+        <p>React 的三大核心理念：<strong>组件化</strong>（UI 拆分为独立、可复用的组件）、<strong>声明式</strong>（描述结果而非过程）、<strong>单向数据流</strong>（数据从父组件通过 props 向下流动，子组件通过回调向上通信）。</p>
+        <p><strong>JSX</strong>是 JavaScript 的语法扩展，看起来像 HTML 但本质是 JavaScript。<code>const el = &lt;h1&gt;Hello&lt;/h1&gt;</code> 编译后是 <code>React.createElement('h1', null, 'Hello')</code>。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 JSX 规则</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>规则</th><th>说明</th><th>示例</th></tr></thead>
+            <tbody>
+              <tr><td>单根元素</td><td>JSX 必须有一个根元素</td><td>用 &lt;&gt;Fragment&lt;/&gt; 包裹</td></tr>
+              <tr><td>className</td><td>class 是 JS 保留字</td><td><code>className="active"</code></td></tr>
+              <tr><td>驼峰属性</td><td>HTML 属性用驼峰</td><td><code>onClick, htmlFor, tabIndex</code></td></tr>
+              <tr><td>内联样式</td><td>对象语法，驼峰属性</td><td><code>style={{ color: 'red' }}</code></td></tr>
+              <tr><td>布尔属性</td><td>简写等同于 true</td><td><code>&lt;input disabled /&gt;</code></td></tr>
+              <tr><td>JS 表达式</td><td>用 {} 插入</td><td><code>{name}, {items.map(...)}</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 Props vs State</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>特性</th><th>Props</th><th>State</th></tr></thead>
+            <tbody>
+              <tr><td>来源</td><td>父组件传入</td><td>组件内部创建</td></tr>
+              <tr><td>可修改性</td><td>只读（单向数据流）</td><td>可通过 setState 修改</td></tr>
+              <tr><td>作用</td><td>配置组件、传递数据</td><td>管理组件内部状态</td></tr>
+              <tr><td>更新触发</td><td>父组件重新渲染</td><td>setState/useState</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 组件类型</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>类型</th><th>定义方式</th><th>特点</th></tr></thead>
+            <tbody>
+              <tr><td>函数组件</td><td><code>function Comp(props) {}</code></td><td>推荐，简洁，支持 Hooks</td></tr>
+              <tr><td>类组件</td><td><code>class Comp extends React.Component</code></td><td>有生命周期方法，较重</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 条件渲染方式</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>方式</th><th>语法</th><th>适用场景</th></tr></thead>
+            <tbody>
+              <tr><td>三元表达式</td><td><code>{flag ? &lt;A/&gt; : &lt;B/&gt;}</code></td><td>二选一</td></tr>
+              <tr><td>&& 短路</td><td><code>{flag && &lt;A/&gt;}</code></td><td>显示或隐藏</td></tr>
+              <tr><td>提前 return</td><td><code>if (!data) return &lt;Loading/&gt;</code></td><td>多行条件逻辑</td></tr>
+              <tr><td>枚举映射</td><td><code>{statusMap[status]}</code></td><td>多状态切换</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.5 列表与 Key</h3>
+        <p><code>key</code> 帮助 React 识别哪些元素发生了变化。key 应该稳定且唯一（使用数据 ID，不要用数组索引）。</p>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：函数组件与 useState</h3>
+        <pre><code class="code-label">JSX</code>import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Count: {count}&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(c =&gt; c + 1)}&gt;+1&lt;/button&gt;
+      &lt;button onClick={() =&gt; setCount(0)}&gt;Reset&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+
+// useState 注意事项：
+// 1. 更新是异步的，不能依赖更新后的值
+// 2. 使用函数式更新获取最新值：setCount(c => c + 1)
+// 3. 对象/数组必须创建新引用：setData({...data, key: newValue})
+// 4. 初始值只用在首次渲染，后续忽略（可用惰性初始化）</code></pre>
+
+        <h3 class="subsection-title">示例二：表单处理</h3>
+        <pre><code class="code-label">JSX</code>import { useState } from 'react';
+
+function LoginForm() {
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    // 创建新对象，不要直接修改
+    setForm(prev => ({ ...prev, [name]: value }));
+    // 清除对应错误
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const newErrors = {};
+    if (!form.email) newErrors.email = '请输入邮箱';
+    if (!form.password) newErrors.password = '请输入密码';
+    if (Object.keys(newErrors).length) {
+      setErrors(newErrors);
+      return;
+    }
+    console.log('Submit:', form);
+  }
+
+  return (
+    &lt;form onSubmit={handleSubmit}&gt;
+      &lt;input
+        name="email"
+        value={form.email}
+        onChange={handleChange}
+        placeholder="邮箱"
+      /&gt;
+      {errors.email && &lt;span className="error"&gt;{errors.email}&lt;/span&gt;}
+      &lt;input
+        name="password"
+        type="password"
+        value={form.password}
+        onChange={handleChange}
+      /&gt;
+      {errors.password && &lt;span className="error"&gt;{errors.password}&lt;/span&gt;}
+      &lt;button type="submit"&gt;登录&lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</code></pre>
+
+        <h3 class="subsection-title">示例三：组件组合与 Props</h3>
+        <pre><code class="code-label">JSX</code>// 容器组件：管理状态和逻辑
+function UserList() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/users')
+      .then(r => r.json())
+      .then(data => { setUsers(data); setLoading(false); });
+  }, []);
+
+  function handleDelete(id) {
+    setUsers(prev => prev.filter(u => u.id !== id));
+  }
+
+  if (loading) return &lt;Loading /&gt;;
+
+  return (
+    &lt;ul&gt;
+      {users.map(user =&gt; (
+        &lt;UserItem
+          key={user.id}
+          user={user}
+          onDelete={handleDelete}
+        /&gt;
+      ))}
+    &lt;/ul&gt;
+  );
+}
+
+// 展示组件：接收 props，纯 UI
+function UserItem({ user, onDelete }) {
+  return (
+    &lt;li&gt;
+      &lt;span&gt;{user.name}&lt;/span&gt;
+      &lt;button onClick={() =&gt; onDelete(user.id)}&gt;删除&lt;/button&gt;
+    &lt;/li&gt;
+  );
+}
+
+// children prop：组合模式
+function Card({ title, children }) {
+  return (
+    &lt;div className="card"&gt;
+      &lt;h3&gt;{title}&lt;/h3&gt;
+      &lt;div className="card-body"&gt;{children}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+// 使用
+// &lt;Card title="用户信息"&gt;
+//   &lt;p&gt;姓名：Alice&lt;/p&gt;
+// &lt;/Card&gt;</code></pre>
+
+        <h3 class="subsection-title">示例四：useEffect 数据获取</h3>
+        <pre><code class="code-label">JSX</code>import { useState, useEffect } from 'react';
+
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false; // 防止竞态条件
+
+    async function fetchUser() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/users/${userId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) setUser(data);
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchUser();
+
+    // 清理函数：组件卸载或 userId 变化时取消
+    return () => { cancelled = true; };
+  }, [userId]); // 依赖数组：userId 变化时重新执行
+
+  if (loading) return &lt;p&gt;加载中...&lt;/p&gt;;
+  if (error) return &lt;p&gt;错误: {error}&lt;/p&gt;;
+  if (!user) return null;
+
+  return &lt;div&gt;{user.name}&lt;/div&gt;;
+}</code></pre>
+
+        <h3 class="subsection-title">示例五：自定义 Hook</h3>
+        <pre><code class="code-label">JSX</code>/**
+ * 通用数据获取 Hook
+ * 遵循：以 use 开头、调用其他 Hook、返回状态
+ */
+function useFetch(url, options = {}) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const res = await fetch(url, {
+          ...options,
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        setData(json);
+        setError(null);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setError(err.message);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+    return () => controller.abort();
+  }, [url]);
+
+  return { data, loading, error };
+}
+
+// 使用
+function UserPage({ id }) {
+  const { data: user, loading, error } = useFetch(`/api/users/${id}`);
+
+  if (loading) return &lt;Loading /&gt;;
+  if (error) return &lt;Error message={error} /&gt;;
+  return &lt;UserCard user={user} /&gt;;
+}</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">为什么 State 更新后读不到新值？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>setState 是异步的，调用后 state 不会立即更新。<code>setCount(1); console.log(count);</code> 仍打印旧值。获取最新值：① 在 setState 的函数式更新中获取；② 使用 useEffect 监听 state 变化；③ 使用 useRef 存储最新值。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">为什么不能在循环/条件中使用 Hooks？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>React 依赖 Hooks 的调用顺序来匹配 state。如果顺序变化（如条件中跳过某个 Hook），后续 Hook 的匹配会错乱。这是 Hooks 的核心规则：只在顶层调用，不在循环/条件/嵌套函数中调用。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">useEffect 的依赖数组怎么确定？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>规则：effect 中使用的所有响应式值（props、state、派生值）都必须列入依赖。ESLint 的 exhaustive-deps 规则可以自动检测遗漏。技巧：如果只想在挂载时执行，确保依赖数组为 []；如果某个值不需要触发重新执行，用 useRef 存储。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 直接修改 State</div>
+          <p><code>state.push(item)</code> 或 <code>state.key = value</code> 是直接修改，React 检测不到变化，不会重新渲染。必须创建新引用：<code>setState([...state, item])</code>、<code>setState({...state, key: value})</code>。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ useEffect 缺少依赖导致闭包陷阱</div>
+          <p>useEffect 中引用的 state/props 如果不在依赖数组中，会使用闭包中的旧值（stale closure）。解决方案：确保依赖数组完整，或使用 useRef 存储最新值：<code>const latestRef = useRef(value); latestRef.current = value;</code></p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://zh-hans.react.dev/" target="_blank">React 官方文档</a></li>
+          <li><a href="https://zh-hans.react.dev/learn" target="_blank">React 学习</a></li>
+          <li><a href="https://beta.reactjs.org/reference/react" target="_blank">React API 参考</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>React 组件的渲染流程？</div>
+          <div class="iq-hint">触发渲染（setState/props 变化/forceUpdate）→ 渲染阶段（执行组件函数，生成虚拟 DOM / React Element）→ 协调阶段（Reconciliation，对比新旧虚拟 DOM，计算最小变更）→ 提交阶段（Commit，将变更应用到真实 DOM）。渲染和协调是可中断的，提交是不可中断的。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>受控组件和非受控组件的区别？</div>
+          <div class="iq-hint">受控组件：表单值由 React state 控制，onChange 更新 state，value 绑定 state。数据流：state → UI → state（单向）。非受控组件：表单值由 DOM 自身管理，通过 ref 获取值。受控组件更可控，推荐使用。非受控组件适合集成非 React 代码或简单场景。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>React 和 Vue 的核心区别？</div>
+          <div class="iq-hint">理念：React 是 UI 库（JSX = JS 优先），Vue 是渐进式框架（模板 = HTML 优先）。响应式：React 不可变数据 + setState 触发，Vue Proxy 自动追踪。写法：React JSX/函数式，Vue 模板/声明式。状态管理：React 手动（useState/useReducer），Vue 自动（ref/reactive）。学习曲线：React 更灵活但需理解更多概念，Vue 约定优于配置上手更快。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

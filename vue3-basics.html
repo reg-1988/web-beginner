@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue 3 基础 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="vue3-basics">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>框架生态</span><span class="sep">/</span><span>Vue 3 基础</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-vue">Vue</span><span class="tag tag-basic">初级</span></div>
+        <h1 class="page-title">Vue 3 基础</h1>
+        <p class="page-subtitle">Vue 3 带来了 Composition API、更快的虚拟 DOM 和更好的 TypeScript 支持——掌握响应式原理、模板语法和组件基础，是 Vue 开发的第一步。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>Vue</strong>是一个渐进式 JavaScript 框架，核心特性是<strong>响应式数据绑定</strong>和<strong>组件化</strong>。Vue 3 相比 Vue 2 的主要变化：Composition API、Proxy 响应式、Fragment（多根节点）、Teleport、Suspense、更小的包体积。</p>
+        <p><strong>响应式系统</strong>是 Vue 的核心。当数据变化时，视图自动更新。Vue 3 使用 Proxy 重写了响应式系统，解决了 Vue 2 中 Object.defineProperty 无法检测属性添加/删除、数组索引修改等局限。</p>
+        <p><strong>组件</strong>是 Vue 应用的基本单元。每个组件封装了自己的模板、逻辑和样式，通过 props 向下传递数据，通过 emit 向上发送事件。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 Vue 3 vs Vue 2</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>特性</th><th>Vue 2</th><th>Vue 3</th></tr></thead>
+            <tbody>
+              <tr><td>响应式</td><td>Object.defineProperty</td><td>Proxy</td></tr>
+              <tr><td>API 风格</td><td>Options API</td><td>Composition API + Options API</td></tr>
+              <tr><td>模板根节点</td><td>单根节点</td><td>Fragment（多根节点）</td></tr>
+              <tr><td>生命周期</td><td>beforeCreate/created/...</td><td>setup + onMounted/onUnmounted/...</td></tr>
+              <tr><td>TypeScript</td><td>支持差（需 class 装饰器）</td><td>原生支持</td></tr>
+              <tr><td>包体积</td><td>~23KB gzip</td><td>~13KB gzip</td></tr>
+              <tr><td>虚拟 DOM</td><td>全量 diff</td><td>静态提升 + Patch Flag</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 响应式原理</h3>
+        <pre><code class="code-label">JavaScript</code>// Vue 3 响应式核心（简化版）
+function reactive(target) {
+  return new Proxy(target, {
+    get(obj, key, receiver) {
+      track(obj, key); // 依赖收集：记录"谁在读这个属性"
+      return Reflect.get(obj, key, receiver);
+    },
+    set(obj, key, value, receiver) {
+      const result = Reflect.set(obj, key, value, receiver);
+      trigger(obj, key); // 触发更新：通知"这个属性变了"
+      return result;
+    }
+  });
+}
+
+// ref 的本质：用对象包装原始值
+function ref(value) {
+  return reactive({ __v_isRef: true, value });
+}</code></pre>
+
+        <h3 class="subsection-title">2.3 生命周期</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Options API</th><th>Composition API</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>beforeCreate</td><td>—（setup 替代）</td><td>实例初始化，数据观测前</td></tr>
+              <tr><td>created</td><td>—（setup 替代）</td><td>实例创建完成，可访问数据</td></tr>
+              <tr><td>beforeMount</td><td>onBeforeMount</td><td>挂载前，模板编译完成</td></tr>
+              <tr><td>mounted</td><td>onMounted</td><td>挂载完成，可访问 DOM</td></tr>
+              <tr><td>beforeUpdate</td><td>onBeforeUpdate</td><td>数据变化，DOM 更新前</td></tr>
+              <tr><td>updated</td><td>onUpdated</td><td>DOM 更新完成</td></tr>
+              <tr><td>beforeUnmount</td><td>onBeforeUnmount</td><td>卸载前</td></tr>
+              <tr><td>unmounted</td><td>onUnmounted</td><td>卸载完成</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 模板语法</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>指令</th><th>用途</th><th>示例</th></tr></thead>
+            <tbody>
+              <tr><td><code>v-bind / :</code></td><td>动态绑定属性</td><td><code>:href="url"</code></td></tr>
+              <tr><td><code>v-on / @</code></td><td>监听事件</td><td><code>@click="handleClick"</code></td></tr>
+              <tr><td><code>v-model</code></td><td>双向绑定</td><td><code>v-model="name"</code></td></tr>
+              <tr><td><code>v-if / v-else-if / v-else</code></td><td>条件渲染（DOM 级）</td><td><code>v-if="show"</code></td></tr>
+              <tr><td><code>v-show</code></td><td>条件显示（CSS 级）</td><td><code>v-show="visible"</code></td></tr>
+              <tr><td><code>v-for</code></td><td>列表渲染</td><td><code>v-for="item in list"</code></td></tr>
+              <tr><td><code>v-slot / #</code></td><td>插槽</td><td><code>#default="{ item }"</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：组件基础</h3>
+        <pre><code class="code-label">Vue</code>&lt;!-- UserCard.vue --&gt;
+&lt;template&gt;
+  &lt;div class="user-card" :class="{ 'is-active': isActive }"&gt;
+    &lt;img :src="user.avatar" :alt="user.name" /&gt;
+    &lt;h3&gt;{{ user.name }}&lt;/h3&gt;
+    &lt;p&gt;{{ user.email }}&lt;/p&gt;
+    &lt;button @click="toggleActive"&gt;
+      {{ isActive ? '停用' : '激活' }}
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script setup&gt;
+// 编译时宏，无需 import
+defineProps({
+  user: {
+    type: Object,
+    required: true,
+  },
+});
+
+const emit = defineEmits(['update']);
+
+const isActive = ref(false);
+
+function toggleActive() {
+  isActive.value = !isActive.value;
+  emit('update', { active: isActive.value });
+}
+&lt;/script&gt;
+
+&lt;style scoped&gt;
+.user-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+.user-card.is-active { border-color: #22c55e; }
+&lt;/style&gt;</code></pre>
+
+        <h3 class="subsection-title">示例二：v-model 自定义组件</h3>
+        <pre><code class="code-label">Vue</code>&lt;!-- CustomInput.vue --&gt;
+&lt;script setup&gt;
+// v-model 默认绑定 modelValue + update:modelValue
+const props = defineProps({ modelValue: String });
+const emit = defineEmits(['update:modelValue']);
+
+function onInput(e) {
+  emit('update:modelValue', e.target.value);
+}
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;input :value="modelValue" @input="onInput" /&gt;
+&lt;/template&gt;
+
+&lt;!-- 使用：支持多个 v-model --&gt;
+&lt;!-- UserForm.vue --&gt;
+&lt;CustomInput v-model="name" /&gt;
+&lt;CustomInput v-model:title="title" /&gt;</code></pre>
+
+        <h3 class="subsection-title">示例三：插槽与作用域插槽</h3>
+        <pre><code class="code-label">Vue</code>&lt;!-- List.vue 通用列表组件 --&gt;
+&lt;template&gt;
+  &lt;ul class="list"&gt;
+    &lt;li v-for="(item, index) in items" :key="item.id"&gt;
+      &lt;!-- 作用域插槽：向父组件暴露数据 --&gt;
+      &lt;slot name="item" :item="item" :index="index"&gt;
+        &lt;!-- 默认内容 --&gt;
+        {{ item.name }}
+      &lt;/slot&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/template&gt;
+
+&lt;script setup&gt;
+defineProps({ items: { type: Array, required: true } });
+&lt;/script&gt;
+
+&lt;!-- 使用 --&gt;
+&lt;List :items="users"&gt;
+  &lt;template #item="{ item, index }"&gt;
+    &lt;span class="rank"&gt;#{{ index + 1 }}&lt;/span&gt;
+    &lt;span&gt;{{ item.name }} - {{ item.score }}分&lt;/span&gt;
+  &lt;/template&gt;
+&lt;/List&gt;</code></pre>
+
+        <h3 class="subsection-title">示例四：Teleport 与 Suspense</h3>
+        <pre><code class="code-label">Vue</code>&lt;!-- Teleport：将内容渲染到 DOM 其他位置 --&gt;
+&lt;template&gt;
+  &lt;button @click="showModal = true"&gt;打开弹窗&lt;/button&gt;
+
+  &lt;!-- 弹窗渲染到 body 下，避免被父组件 overflow:hidden 裁切 --&gt;
+  &lt;Teleport to="body"&gt;
+    &lt;div v-if="showModal" class="modal-overlay"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;h2&gt;弹窗标题&lt;/h2&gt;
+        &lt;p&gt;弹窗内容&lt;/p&gt;
+        &lt;button @click="showModal = false"&gt;关闭&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/Teleport&gt;
+&lt;/template&gt;
+
+&lt;!-- Suspense：等待异步组件 --&gt;
+&lt;template&gt;
+  &lt;Suspense&gt;
+    &lt;!-- 异步组件（setup 中使用 await） --&gt;
+    &lt;template #default&gt;
+      &lt;AsyncProfile /&gt;
+    &lt;/template&gt;
+    &lt;!-- 加载中 fallback --&gt;
+    &lt;template #fallback&gt;
+      &lt;div class="loading"&gt;加载中...&lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/Suspense&gt;
+&lt;/template&gt;</code></pre>
+
+        <h3 class="subsection-title">示例五：性能优化技巧</h3>
+        <pre><code class="code-label">Vue</code>&lt;script setup&gt;
+import { ref, computed, shallowRef, triggerRef } from 'vue';
+
+// 1. computed 缓存计算结果（vs method 每次重新执行）
+const keyword = ref('');
+const filteredList = computed(() =>
+  items.value.filter(item => item.name.includes(keyword.value))
+);
+
+// 2. shallowRef：大对象只需关注顶层变化
+const bigData = shallowRef({ a: { b: { c: 1 } } });
+// 修改深层属性不触发更新
+bigData.value.a.b.c = 2; // 不触发
+// 替换整个值才触发
+bigData.value = { ...bigData.value }; // 触发
+// 或手动触发
+triggerRef(bigData);
+
+// 3. v-once：只渲染一次，后续不更新
+// &lt;div v-once&gt;{{ initialValue }}&lt;/div&gt;
+
+// 4. v-memo：条件性跳过更新
+// &lt;div v-memo="[item.id]"&gt;...&lt;/div&gt;
+
+// 5. defineAsyncComponent：异步加载组件
+const AsyncComp = defineAsyncComponent(() =>
+  import('./HeavyComponent.vue')
+);
+&lt;/script&gt;</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">v-if 和 v-show 怎么选？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>v-if：条件为 false 时不渲染 DOM，切换时有挂载/卸毁开销。适合条件很少变化的场景。v-show：始终渲染 DOM，用 CSS display 控制显隐，切换开销小。适合频繁切换的场景（如 Tab、弹窗）。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Vue 3 为什么用 Proxy 替代 defineProperty？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>Proxy 可以拦截：① 属性添加（Vue 2 需 Vue.set）；② 属性删除（Vue 2 需 Vue.delete）；③ 数组索引和长度修改；④ for...in / delete 等操作。Proxy 代理整个对象，无需逐个属性劫持，性能更好。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">为什么 v-for 必须加 key？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>key 是虚拟 DOM diff 算法的节点标识。没有 key 时，Vue 采用"就地复用"策略，可能错误复用 DOM 节点。有 key 时，Vue 基于 key 判断节点是否可复用，保证列表增删时的正确性和性能。不要用 index 作 key（排序/删除时会导致错误复用）。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 不要解构 reactive 对象</div>
+          <p><code>const { name } = reactive({ name: 'Alice' })</code> 解构后 name 失去响应式。用 <code>toRefs()</code>：<code>const { name } = toRefs(state)</code> 将每个属性转为 ref。或直接使用 ref。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ ref 需要 .value，模板中不需要</div>
+          <p>在 <code>&lt;script setup&gt;</code> 中访问 ref 需要 <code>count.value</code>，但在 <code>&lt;template&gt;</code> 中自动解包，直接用 <code>{{ count }}</code>。注意 <code>reactive</code> 对象中的 ref 也会自动解包。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://cn.vuejs.org/" target="_blank">Vue 3 官方文档</a></li>
+          <li><a href="https://cn.vuejs.org/guide/extras/reactivity-in-depth.html" target="_blank">Vue 3 响应式深入</a></li>
+          <li><a href="https://cn.vuejs.org/guide/extras/rendering-mechanism.html" target="_blank">Vue 3 渲染机制</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>Vue 3 的响应式原理是什么？</div>
+          <div class="iq-hint">使用 Proxy 拦截对象的读写操作。读取时通过 track() 收集依赖（当前渲染函数/effect），修改时通过 trigger() 通知依赖更新。ref 用对象包装原始值实现响应式。相比 Vue 2 的 defineProperty，Proxy 能检测属性增删、数组索引修改。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>ref 和 reactive 的区别？</div>
+          <div class="iq-hint">ref：包装原始值或对象，通过 .value 访问，模板自动解包，推荐用于基础值。reactive：直接代理对象，不需要 .value，不能替换整个对象（会丢失响应式），解构会丢失响应式。推荐：基础值用 ref，对象用 reactive 或 ref({})。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>Vue 组件通信有哪些方式？</div>
+          <div class="iq-hint">① props + emit（父子）；② v-model（父子双向绑定）；③ provide/inject（跨层级）；④ ref + expose（父调子方法）；⑤ Event Bus（mitt，任意组件）；⑥ Pinia/Vuex（全局状态）；⑦ URL 路由参数。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

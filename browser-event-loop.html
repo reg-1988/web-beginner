@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事件循环机制 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="browser-event-loop">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>浏览器与网络</span><span class="sep">/</span><span>事件循环机制</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">浏览器</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">事件循环机制</h1>
+        <p class="page-subtitle">事件循环是 JavaScript 实现异步的核心机制——理解宏任务、微任务的执行顺序，才能精准预测代码行为，这是面试必考、实战必用的知识点。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>事件循环（Event Loop）</strong>是浏览器（或 Node.js）提供的一种机制，让单线程的 JavaScript 能够执行异步非阻塞操作。它通过不断循环检查调用栈和任务队列，决定下一个要执行的任务。</p>
+        <p>JavaScript 是<strong>单线程</strong>语言，同一时间只能执行一段代码。事件循环的工作方式是：执行同步代码 → 清空微任务队列 → 取一个宏任务执行 → 再清空微任务 → 如此循环。这就是为什么异步回调不会阻塞主线程。</p>
+        <p>理解事件循环的关键在于分清<strong>宏任务（Macrotask）</strong>和<strong>微任务（Microtask）</strong>的优先级：每个宏任务执行完后，必须清空所有微任务，才会执行下一个宏任务。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 事件循环模型</h3>
+        <pre><code class="code-label">text">┌───────────────────────────┐
+│       调用栈 (Call Stack)   │  ← 同步代码在此执行
+└──────────────┬────────────┘
+               │ 栈空
+               ▼
+┌───────────────────────────┐
+│    微任务队列 (Microtask)   │  ← Promise.then, MutationObserver
+│  [task1, task2, ...]      │  ← 清空整个队列
+└──────────────┬────────────┘
+               │ 队列空
+               ▼
+┌───────────────────────────┐
+│    宏任务队列 (Macrotask)   │  ← setTimeout, setInterval, I/O
+│  [task1, task2, ...]      │  ← 每次只取一个
+└──────────────┬────────────┘
+               │ 执行完一个宏任务
+               ▼
+          回到清空微任务队列</code></pre>
+
+        <h3 class="subsection-title">2.2 宏任务与微任务分类</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>分类</th><th>API / 场景</th><th>触发时机</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="5">宏任务</td><td><code>setTimeout / setInterval</code></td><td>定时器到期</td></tr>
+              <tr><td><code>I/O 操作</code></td><td>网络请求、文件读取完成</td></tr>
+              <tr><td><code>UI 交互事件</code></td><td>点击、滚动等事件回调</td></tr>
+              <tr><td><code>requestAnimationFrame</code></td><td>下一次渲染前（浏览器专属）</td></tr>
+              <tr><td><code>setImmediate</code></td><td>Node.js 专属，I/O 之后</td></tr>
+              <tr><td rowspan="4">微任务</td><td><code>Promise.then/catch/finally</code></td><td>Promise 状态变更</td></tr>
+              <tr><td><code>MutationObserver</code></td><td>DOM 变动</td></tr>
+              <tr><td><code>queueMicrotask()</code></td><td>手动添加微任务</td></tr>
+              <tr><td><code>process.nextTick</code></td><td>Node.js 专属（优先级最高）</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 执行顺序规则</h3>
+        <div class="callout callout-tip">
+          <div class="callout-title">💡 核心规则（牢记）</div>
+          <p>1. 同步代码先执行（在调用栈中）<br>2. 同步代码执行完 → 清空<strong>所有</strong>微任务<br>3. 取<strong>一个</strong>宏任务执行<br>4. 该宏任务执行完 → 再次清空所有微任务<br>5. 可能触发 UI 渲染（在宏任务之间）<br>6. 重复步骤 3-5</p>
+        </div>
+
+        <h3 class="subsection-title">2.4 requestAnimationFrame 的位置</h3>
+        <p>在浏览器中，rAF 在微任务之后、浏览器渲染之前执行。它不属于宏任务也不属于微任务，而是渲染流程的一部分。这使得它适合做动画——保证在下一帧绘制前更新样式。</p>
+        <pre><code class="code-label">text">宏任务 → 微任务（清空）→ requestAnimationFrame → 渲染 → 下一个宏任务</code></pre>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：经典输出顺序题</h3>
+        <pre><code class="code-label">JavaScript</code>console.log('1');
+
+setTimeout(() => {
+  console.log('2');
+  Promise.resolve().then(() => console.log('3'));
+}, 0);
+
+Promise.resolve().then(() => {
+  console.log('4');
+  setTimeout(() => console.log('5'), 0);
+});
+
+console.log('6');
+
+// 执行过程分析：
+// 1. 同步代码：log('1') → log('6')
+// 2. 微任务队列：[Promise.then → log('4'), 同时注册 setTimeout('5')]
+// 3. 宏任务1：setTimeout → log('2'), 注册微任务 Promise.then
+// 4. 微任务：log('3')
+// 5. 宏任务2：setTimeout → log('5')
+// 输出：1, 6, 4, 2, 3, 5</code></pre>
+
+        <h3 class="subsection-title">示例二：async/await 的微任务本质</h3>
+        <pre><code class="code-label">JavaScript</code>async function async1() {
+  console.log('async1 start');
+  await async2();  // await 后面的代码相当于 .then 回调（微任务）
+  console.log('async1 end'); // 微任务
+}
+
+async function async2() {
+  console.log('async2');
+}
+
+console.log('script start');
+
+setTimeout(() => console.log('setTimeout'), 0);
+
+async1();
+
+new Promise((resolve) => {
+  console.log('promise1');
+  resolve();
+}).then(() => console.log('promise2'));
+
+console.log('script end');
+
+// 分析：
+// 同步：script start → async1 start → async2 → promise1 → script end
+// 微任务：async1 end → promise2
+// 宏任务：setTimeout
+// 输出：script start, async1 start, async2, promise1, script end,
+//       async1 end, promise2, setTimeout</code></pre>
+
+        <h3 class="subsection-title">示例三：利用微任务确保 DOM 更新</h3>
+        <pre><code class="code-label">JavaScript</code>// ❌ 直接读取可能获取旧值
+element.style.height = '100px';
+console.log(element.offsetHeight); // 可能还是旧值
+
+// ✅ 方案1：用微任务确保在渲染前获取最新布局
+element.style.height = '100px';
+Promise.resolve().then(() => {
+  // 微任务在渲染前执行，但此时布局已计算
+  console.log(element.offsetHeight); // 100
+});
+
+// ✅ 方案2：用 requestAnimationFrame 确保在渲染前更新
+element.style.height = '100px';
+requestAnimationFrame(() => {
+  // 在下一帧绘制前执行
+  console.log(element.offsetHeight);
+});
+
+// ✅ 方案3：双 rAF 确保渲染已完成
+element.style.height = '100px';
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    // 此时上一帧已渲染完毕
+    console.log(element.offsetHeight); // 100
+  });
+});</code></pre>
+
+        <h3 class="subsection-title">示例四：实现可中断的异步任务</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 使用事件循环实现可中断的任务处理
+ * 每处理一批数据后让出主线程，保持 UI 响应
+ */
+async function processLargeArray(array, handler, batchSize = 100) {
+  let index = 0;
+  
+  return new Promise((resolve) => {
+    function processBatch() {
+      const end = Math.min(index + batchSize, array.length);
+      
+      while (index < end) {
+        handler(array[index], index);
+        index++;
+      }
+      
+      if (index < array.length) {
+        // 让出主线程：使用 setTimeout(0) 让 UI 有机会响应
+        setTimeout(processBatch, 0);
+      } else {
+        resolve();
+      }
+    }
+    
+    processBatch();
+  });
+}
+
+// 使用
+const data = Array.from({ length: 10000 }, (_, i) => i);
+await processLargeArray(data, (item, idx) => {
+  // 处理每一项
+  if (idx % 1000 === 0) console.log(`已处理 ${idx} 项`);
+});</code></pre>
+
+        <h3 class="subsection-title">示例五：queueMicrotask 与调度</h3>
+        <pre><code class="code-label">JavaScript</code>// queueMicrotask: 显式添加微任务（比 Promise.resolve().then() 更语义化）
+function defer(fn) {
+  queueMicrotask(fn);
+}
+
+// 用途：确保回调在当前调用栈清空后、下一个宏任务前执行
+function emitEvent(event) {
+  // 同步收集监听器，异步触发（避免在监听器中修改当前执行流）
+  const listeners = this.listeners.slice();
+  queueMicrotask(() => {
+    for (const listener of listeners) {
+      try {
+        listener(event);
+      } catch (err) {
+        console.error('Event listener error:', err);
+      }
+    }
+  });
+}
+
+// 调度优先级示例
+console.log('sync');
+queueMicrotask(() => console.log('microtask'));
+setTimeout(() => console.log('macrotask'), 0);
+// 输出：sync → microtask → macrotask</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">setTimeout(fn, 0) 真的是 0ms 后执行吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>不是。HTML 规范规定 setTimeout 最小延迟为 4ms（嵌套超过 5 层后）。且即使延迟到期，回调也必须等当前宏任务和所有微任务执行完才会执行。此外，浏览器标签页在后台时，定时器可能被限流至 1s 甚至更长。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Promise.then 是微任务，new Promise 的 executor 呢？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>new Promise 的 executor（传入的函数）是<strong>同步执行</strong>的。只有 .then/.catch/.finally 的回调才是微任务。<code>new Promise(resolve => { console.log(1); resolve(); }).then(() => console.log(2));</code> 输出 1, 2。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Node.js 和浏览器的事件循环有什么区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>Node.js 的事件循环分 6 个阶段（timers → pending → idle → prepare → poll → check → close）。微任务优先级：process.nextTick > Promise.then。浏览器只有宏任务和微任务两个队列。Node 11+ 的行为已向浏览器对齐。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 微任务中无限添加微任务会阻塞渲染</div>
+          <p>微任务队列是在同步代码后、渲染前清空的。如果在微任务中不断添加新微任务（如递归 Promise.resolve().then()），队列永远清不完，渲染被阻塞，页面卡死。这不是无限循环，但效果等同。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ async 函数中的 await 不是暂停整个程序</div>
+          <p>await 只暂停当前 async 函数的执行，将后面的代码注册为微任务。主线程继续执行其他代码。多个 async 函数可以并行运行，不会互相阻塞。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Event_loop" target="_blank">MDN - 事件循环</a></li>
+          <li><a href="https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/" target="_blank">Tasks, microtasks, queues and schedules</a></li>
+          <li><a href="https://zh.javascript.info/event-loop" target="_blank">现代 JavaScript 教程 - 事件循环</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>宏任务和微任务有什么区别？执行顺序是什么？</div>
+          <div class="iq-hint">宏任务：setTimeout、I/O、UI 事件等，每次只取一个。微任务：Promise.then、MutationObserver 等，每次清空整个队列。执行顺序：同步代码 → 清空微任务 → 取一个宏任务 → 清空微任务 → 循环。微任务优先级高于宏任务。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>为什么 await 后面的代码是微任务？</div>
+          <div class="iq-hint">async/await 是 Promise + generator 的语法糖。await 后面的代码等价于 .then() 回调，自然也是微任务。<code>async function f() { await p; code; }</code> 等价于 <code>function f() { return p.then(() => code); }</code>。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>如何确保 DOM 更新后再执行操作？</div>
+          <div class="iq-hint">① Promise.resolve().then() — 微任务，在渲染前执行，可获取最新布局计算值；② requestAnimationFrame — 下一次渲染前执行，适合动画；③ 双 rAF — 确保渲染已完成。Vue 的 nextTick 原理类似，使用微任务（Promise.then）确保 DOM 更新后执行。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

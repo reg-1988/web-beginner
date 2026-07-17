@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webpack 基础 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="eng-webpack">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>前端工程化</span><span class="sep">/</span><span>Webpack 基础</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">工程化</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">Webpack 基础</h1>
+        <p class="page-subtitle">Webpack 是最成熟的前端模块打包器——理解核心概念、Loader、Plugin 和优化配置，是掌握前端工程化的关键。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>Webpack</strong>是一个静态模块打包工具。它将项目中的各种资源（JS、CSS、图片、字体等）视为模块，通过依赖关系图（Dependency Graph）分析模块间的引用，最终打包成浏览器可用的静态文件。</p>
+        <p>Webpack 的核心理念：<strong>一切皆模块</strong>，<strong>按需加载</strong>。它通过 Loader 处理非 JS 资源，通过 Plugin 扩展构建流程。</p>
+        <p>虽然 Vite 等新工具在开发体验上更优，但 Webpack 仍是企业级项目的主流选择，理解其原理有助于理解所有打包工具的设计思想。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 五大核心概念</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>概念</th><th>作用</th><th>配置字段</th></tr></thead>
+            <tbody>
+              <tr><td>Entry（入口）</td><td>构建依赖图的起点</td><td><code>entry</code></td></tr>
+              <tr><td>Output（输出）</td><td>打包产物的输出位置和命名</td><td><code>output</code></td></tr>
+              <tr><td>Loader（加载器）</td><td>处理非 JS 文件，转换为 JS 模块</td><td><code>module.rules</code></td></tr>
+              <tr><td>Plugin（插件）</td><td>扩展构建能力（压缩、拷贝、环境变量等）</td><td><code>plugins</code></td></tr>
+              <tr><td>Mode（模式）</td><td>development / production，内置优化</td><td><code>mode</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 构建流程</h3>
+        <pre><code class="code-label">text">初始化参数 → 开始编译 → 编译模块 → 完成编译 → 输出资源 → 输出完成
+   ↓            ↓           ↓           ↓          ↓
+读取配置     从 Entry    调用 Loader  生成 chunk  写入文件
+合并参数     递归解析     转换源码     组装模块    输出目录
+             依赖图      + Plugin     依赖关系</code></pre>
+
+        <h3 class="subsection-title">2.3 常用 Loader</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Loader</th><th>处理文件</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>babel-loader</code></td><td>.js</td><td>ES6+ 降级为 ES5</td></tr>
+              <tr><td><code>css-loader</code></td><td>.css</td><td>解析 CSS 中的 import/url</td></tr>
+              <tr><td><code>style-loader</code></td><td>.css</td><td>将 CSS 注入 DOM（style 标签）</td></tr>
+              <tr><td><code>postcss-loader</code></td><td>.css</td><td>PostCSS 处理（autoprefixer 等）</td></tr>
+              <tr><td><code>file-loader</code></td><td>图片/字体</td><td>输出文件到目录，返回 URL</td></tr>
+              <tr><td><code>url-loader</code></td><td>图片/字体</td><td>小文件转 base64 内联</td></tr>
+              <tr><td><code>vue-loader</code></td><td>.vue</td><td>解析 Vue 单文件组件</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 常用 Plugin</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Plugin</th><th>作用</th></tr></thead>
+            <tbody>
+              <tr><td><code>HtmlWebpackPlugin</code></td><td>自动生成 HTML 并引入打包文件</td></tr>
+              <tr><td><code>MiniCssExtractPlugin</code></td><td>将 CSS 提取为独立文件（生产环境）</td></tr>
+              <tr><td><code>CleanWebpackPlugin</code></td><td>构建前清理输出目录</td></tr>
+              <tr><td><code>DefinePlugin</code></td><td>注入环境变量</td></tr>
+              <tr><td><code>CopyWebpackPlugin</code></td><td>复制静态资源到输出目录</td></tr>
+              <tr><td><code>TerserPlugin</code></td><td>JS 压缩（production 模式默认）</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.5 Code Splitting 策略</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>方式</th><th>说明</th><th>使用场景</th></tr></thead>
+            <tbody>
+              <tr><td>入口分割</td><td>多 entry 配置</td><td>多页应用</td></tr>
+              <tr><td>动态 import()</td><td>运行时按需加载</td><td>路由懒加载、大组件</td></tr>
+              <tr><td>SplitChunksPlugin</td><td>自动提取公共模块</td><td>第三方库、公共代码</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：基础配置</h3>
+        <pre><code class="code-label">JavaScript</code>const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+module.exports = {
+  mode: 'development',
+  entry: './src/main.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].[contenthash:8].js',
+    clean: true, // Webpack 5 内置清理
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: 'babel-loader',
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg)$/,
+        type: 'asset', // Webpack 5 Asset Modules
+        parser: {
+          dataUrlCondition: { maxSize: 8 * 1024 }, // 8KB 以下内联
+        },
+        generator: {
+          filename: 'images/[hash:8][ext][query]',
+        },
+      },
+    ],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './public/index.html',
+      title: 'My App',
+    }),
+  ],
+  devtool: 'eval-cheap-module-source-map',
+  devServer: {
+    static: './public',
+    hot: true,
+    port: 3000,
+    open: true,
+  },
+};</code></pre>
+
+        <h3 class="subsection-title">示例二：生产环境优化配置</h3>
+        <pre><code class="code-label">JavaScript</code>const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+
+module.exports = {
+  mode: 'production',
+  output: {
+    filename: 'js/[name].[contenthash:8].js',
+    chunkFilename: 'js/[name].[contenthash:8].chunk.js',
+    assetModuleFilename: 'assets/[hash:8][ext][query]',
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'],
+      },
+    ],
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: 'css/[name].[contenthash:8].css',
+    }),
+  ],
+  optimization: {
+    minimize: true,
+    minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        // 第三方库单独打包
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendor',
+          chunks: 'all',
+          priority: 10,
+        },
+        // 公共代码提取
+        common: {
+          minChunks: 2,
+          name: 'common',
+          chunks: 'all',
+          priority: 5,
+          reuseExistingChunk: true,
+        },
+      },
+    },
+    // 运行时代码单独提取
+    runtimeChunk: 'single',
+  },
+  // 生产环境不生成 source map
+  devtool: 'hidden-source-map',
+};</code></pre>
+
+        <h3 class="subsection-title">示例三：环境区分配置</h3>
+        <pre><code class="code-label">JavaScript</code>// webpack.common.js
+const { merge } = require('webpack-merge');
+const common = require('./webpack.common.js');
+
+// webpack.dev.js
+module.exports = merge(common, {
+  mode: 'development',
+  devtool: 'eval-cheap-module-source-map',
+  devServer: { hot: true, port: 3000 },
+  module: {
+    rules: [
+      { test: /\.css$/, use: ['style-loader', 'css-loader'] },
+    ],
+  },
+});
+
+// webpack.prod.js
+module.exports = merge(common, {
+  mode: 'production',
+  devtool: 'hidden-source-map',
+  plugins: [new MiniCssExtractPlugin()],
+  optimization: { splitChunks: { chunks: 'all' } },
+});
+
+// package.json
+// "dev": "webpack serve --config webpack.dev.js"
+// "build": "webpack --config webpack.prod.js"</code></pre>
+
+        <h3 class="subsection-title">示例四：自定义 Plugin</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 自定义 Plugin：构建完成后生成文件清单
+ */
+class FileListPlugin {
+  constructor(options = {}) {
+    this.filename = options.filename || 'filelist.md';
+  }
+
+  apply(compiler) {
+    // 在 emit 阶段（输出文件到目录之前）插入钩子
+    compiler.hooks.emit.tapAsync('FileListPlugin', (compilation, callback) => {
+      // 获取所有输出文件名
+      const fileNames = Object.keys(compilation.assets);
+      
+      // 生成清单内容
+      let content = '# 构建产物清单\n\n';
+      content += `构建时间: ${new Date().toISOString()}\n\n`;
+      content += '| 文件 | 大小 |\n| --- | --- |\n';
+      
+      for (const name of fileNames) {
+        const size = compilation.assets[name].size();
+        content += `| ${name} | ${(size / 1024).toFixed(2)} KB |\n`;
+      }
+      
+      // 添加到输出文件
+      compilation.assets[this.filename] = {
+        source: () => content,
+        size: () => content.length,
+      };
+      
+      callback();
+    });
+  }
+}
+
+// 使用
+// plugins: [new FileListPlugin({ filename: 'manifest.md' })]</code></pre>
+
+        <h3 class="subsection-title">示例五：性能分析工具</h3>
+        <pre><code class="code-label">bash</code># 1. 分析打包速度
+npx speed-measure-webpack-plugin
+
+# 2. 分析包体积（推荐）
+npx webpack-bundle-analyzer dist/stats.json
+
+# 3. Webpack 内置统计
+webpack --profile --json > stats.json
+# 上传到 https://webpack.github.io/analyse/ 分析
+
+# 4. 持久化缓存（Webpack 5）
+module.exports = {
+  cache: {
+    type: 'filesystem', // 文件系统缓存
+    buildDependencies: {
+      config: [__filename],
+    },
+  },
+};
+
+# 5. 模块联邦（Module Federation，微前端）
+// 应用 A（远程）
+new ModuleFederationPlugin({
+  name: 'appA',
+  filename: 'remoteEntry.js',
+  exposes: { './Button': './src/components/Button' },
+  shared: { vue: { singleton: true } },
+})
+
+// 应用 B（宿主）
+new ModuleFederationPlugin({
+  name: 'appB',
+  remotes: { appA: 'appA@http://localhost:3001/remoteEntry.js' },
+  shared: { vue: { singleton: true } },
+})</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Webpack 和 Vite 有什么区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>Webpack：先打包再启动，开发速度随项目增大变慢，配置复杂但功能强大。Vite：开发时基于 ESM 不打包，启动极快；生产用 Rollup 打包。新项目推荐 Vite，大型存量项目 Webpack 仍是主流。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Loader 和 Plugin 的区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>Loader 是文件转换器，将非 JS 资源转为 JS 模块（如 css-loader 解析 CSS），在模块构建阶段执行。Plugin 是构建流程扩展器，监听 Webpack 生命周期钩子执行自定义逻辑（如生成 HTML、压缩代码），贯穿整个构建流程。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">contenthash 变化导致缓存失效怎么办？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>使用 runtimeChunk 将 Webpack 运行时代码单独提取，避免业务代码改变导致 runtime 变化。同时使用 splitChunks 将第三方库单独打包，业务代码变化不影响 vendor hash。确保 moduleIds 使用 deterministic 算法。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 不要在生产环境使用 style-loader</div>
+          <p>style-loader 将 CSS 注入 JS 并通过 style 标签插入 DOM，导致 JS 体积膨胀和 FOUC（无样式闪烁）。生产环境务必使用 MiniCssExtractPlugin 将 CSS 提取为独立文件。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ Loader 执行顺序是从右到左</div>
+          <p><code>use: ['style-loader', 'css-loader', 'postcss-loader']</code> 实际执行顺序：postcss → css → style。可理解为管道：源文件经过 postcss 处理，再给 css-loader 解析，最后 style-loader 注入 DOM。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://webpack.docschina.org/" target="_blank">Webpack 中文文档</a></li>
+          <li><a href="https://web.dev/articles/webpack" target="_blank">web.dev - Webpack</a></li>
+          <li><a href="https://survivejs.com/webpack/" target="_blank">SurviveJS - Webpack</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>Webpack 的构建流程是什么？</div>
+          <div class="iq-hint">初始化：读取配置、创建 Compiler。编译：从 Entry 出发，调用 Loader 转换模块，递归解析依赖关系，构建依赖图。输出：根据依赖图组装 Chunk，写入文件系统。整个过程中 Plugin 通过钩子参与各阶段。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>Webpack 的热更新（HMR）原理？</div>
+          <div class="iq-hint">Webpack-dev-server 与浏览器建立 WebSocket 连接。文件修改后 Webpack 重新编译，生成补丁文件（manifest + update chunk），通过 WebSocket 通知浏览器。浏览器下载补丁，通过 HMR Runtime 替换对应模块。模块需要自行定义 accept 回调处理更新。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>如何优化 Webpack 构建速度？</div>
+          <div class="iq-hint">① 持久化缓存（cache: filesystem）；② 缩小 Loader 范围（exclude node_modules）；③ 使用 thread-loader 多线程编译；④ DLL 预编译第三方库；⑤ 合理使用 source-map 类型；⑥ resolve.alias 减少搜索路径；⑦ 使用 esbuild-loader 替代 babel-loader。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

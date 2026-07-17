@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSRF 防御 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="sec-csrf">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>性能与安全</span><span class="sep">/</span><span>CSRF 防御</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">安全</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">CSRF 防御</h1>
+        <p class="page-subtitle">CSRF 利用用户的登录状态发起恶意请求——理解攻击原理和 Token/SameSite 等防御方案，是保护用户数据安全的关键。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>CSRF（Cross-Site Request Forgery，跨站请求伪造）</strong>是攻击者诱导用户在已登录的网站上执行非预期操作。攻击利用浏览器自动携带 Cookie 的特性，伪造合法请求。</p>
+        <p>CSRF 与 XSS 的区别：XSS 是注入恶意脚本执行（代码注入），CSRF 是借用用户的身份发起请求（身份伪造）。XSS 是"你的代码被执行了"，CSRF 是"你的身份被冒用了"。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 攻击流程</h3>
+        <pre><code class="code-label">text">1. 用户登录 bank.com，浏览器保存 Cookie
+2. 用户访问 evil.com（攻击者网站）
+3. evil.com 中包含：
+   &lt;img src="https://bank.com/transfer?to=hacker&amount=10000"&gt;
+4. 浏览器自动携带 bank.com 的 Cookie 发起请求
+5. bank.com 服务器验证 Cookie 有效，执行转账
+
+关键：浏览器自动携带 Cookie，攻击者不需要知道 Cookie 内容</code></pre>
+
+        <h3 class="subsection-title">2.2 常见攻击手法</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>手法</th><th>请求类型</th><th>示例</th></tr></thead>
+            <tbody>
+              <tr><td>GET 请求（img/link）</td><td>GET</td><td><code>&lt;img src="/api/transfer?to=hacker"&gt;</code></td></tr>
+              <tr><td>自动提交表单</td><td>POST</td><td><code>&lt;form action="/api/transfer" method="POST"&gt;</code></td></tr>
+              <tr><td>XMLHttpRequest</td><td>GET/POST</td><td>受 CORS 限制，简单请求可能成功</td></tr>
+              <tr><td>链接诱导</td><td>GET</td><td><code>&lt;a href="/api/delete?id=1"&gt;点击领取&lt;/a&gt;</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 防御方案对比</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>方案</th><th>原理</th><th>安全性</th><th>实现复杂度</th></tr></thead>
+            <tbody>
+              <tr><td>CSRF Token</td><td>服务端生成 Token，请求时验证</td><td>高</td><td>中</td></tr>
+              <tr><td>SameSite Cookie</td><td>限制跨站 Cookie 发送</td><td>高</td><td>低</td></tr>
+              <tr><td>双重 Cookie 验证</td><td>Cookie + 请求体/头中携带</td><td>中</td><td>中</td></tr>
+              <tr><td>Origin/Referer 检查</td><td>验证请求来源</td><td>中低</td><td>低</td></tr>
+              <tr><td>验证码</td><td>人工确认操作</td><td>最高</td><td>高（影响体验）</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：CSRF Token 实现</h3>
+        <pre><code class="code-label">JavaScript</code>// 服务端：生成和验证 CSRF Token
+const crypto = require('crypto');
+
+// 生成 Token
+function generateCSRFToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// 中间件：设置和验证 Token
+function csrfMiddleware(req, res, next) {
+  // 对安全方法（GET/HEAD/OPTIONS）跳过验证
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    // 生成新 Token
+    const token = generateCSRFToken();
+    res.cookie('csrf_token', token, {
+      httpOnly: false,  // 前端需要读取
+      secure: true,
+      sameSite: 'Lax',
+    });
+    res.locals.csrfToken = token;
+    return next();
+  }
+
+  // 验证 Token
+  const cookieToken = req.cookies.csrf_token;
+  const bodyToken = req.body?._csrf || req.headers['x-csrf-token'];
+
+  if (!cookieToken || !bodyToken || cookieToken !== bodyToken) {
+    return res.status(403).json({ error: 'CSRF validation failed' });
+  }
+
+  next();
+}</code></pre>
+
+        <h3 class="subsection-title">示例二：前端 CSRF Token 处理</h3>
+        <pre><code class="code-label">JavaScript</code>// 方案一：从 Cookie 读取 Token，放入请求头
+function getCSRFToken() {
+  const match = document.cookie.match(/csrf_token=([^;]+)/);
+  return match ? match[1] : '';
+}
+
+// Axios 拦截器自动添加
+axios.interceptors.request.use((config) => {
+  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+    config.headers['X-CSRF-Token'] = getCSRFToken();
+  }
+  return config;
+});
+
+// 方案二：从 meta 标签读取（服务端渲染页面时注入）
+// &lt;meta name="csrf-token" content="{{ csrfToken }}"&gt;
+function getCSRFTokenFromMeta() {
+  return document.querySelector('meta[name="csrf-token"]')?.content || '';
+}
+
+// 方案三：表单隐藏字段
+// &lt;form action="/api/transfer" method="POST"&gt;
+//   &lt;input type="hidden" name="_csrf" value="{{ csrfToken }}"&gt;
+//   &lt;input type="text" name="amount"&gt;
+//   &lt;button type="submit"&gt;提交&lt;/button&gt;
+// &lt;/form&gt;</code></pre>
+
+        <h3 class="subsection-title">示例三：SameSite Cookie 配置</h3>
+        <pre><code class="code-label">JavaScript</code>// 服务端设置 SameSite Cookie
+res.cookie('session_id', sessionId, {
+  httpOnly: true,    // JS 不可读
+  secure: true,      // 仅 HTTPS
+  sameSite: 'Lax',   // 推荐：跨站导航携带，跨站请求不携带
+  maxAge: 86400000,  // 1 天
+  path: '/',
+});
+
+// SameSite 属性说明：
+// Strict — 完全不发送跨站 Cookie（安全性最高，体验差：从链接进入不带 Cookie）
+// Lax    — 导航跳转携带，Ajax/iframe/表单不携带（推荐，平衡安全与体验）
+// None   — 跨站全部携带（需配合 Secure，仅用于需要跨站的场景如 OAuth）
+
+// Chrome 80+ 默认 SameSite=Lax
+// 如果前后端不同域（如 api.example.com 和 www.example.com），
+// Cookie 需设 SameSite=None; Secure 才能跨站携带</code></pre>
+
+        <h3 class="subsection-title">示例四：Origin/Referer 检查</h3>
+        <pre><code class="code-label">JavaScript</code>// 服务端中间件：检查请求来源
+function checkOrigin(req, res, next) {
+  const allowedOrigins = [
+    'https://www.example.com',
+    'https://example.com',
+  ];
+
+  const origin = req.headers.origin || req.headers.referer;
+
+  if (!origin) {
+    // 无 Origin/Referer：可能是隐私设置或旧浏览器
+    // 可选择放行或拒绝（根据业务安全等级）
+    return next();
+  }
+
+  try {
+    const url = new URL(origin);
+    if (allowedOrigins.includes(url.origin)) {
+      return next();
+    }
+  } catch {}
+
+  res.status(403).json({ error: 'Invalid origin' });
+}
+
+// 注意：Origin/Referer 可能被用户隐私设置或浏览器扩展移除
+// 不能作为唯一防线，应与 CSRF Token 配合使用</code></pre>
+
+        <h3 class="subsection-title">示例五：双重 Cookie 验证</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 双重 Cookie 验证：Cookie + 请求头/参数同时携带
+ * 攻击者只能自动携带 Cookie，无法读取 Cookie 值
+ */
+
+// 前端：从 Cookie 读取值，放入请求头
+function getRequestToken() {
+  const match = document.cookie.match(/request_token=([^;]+)/);
+  return match ? match[1] : '';
+}
+
+fetch('/api/transfer', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Request-Token': getRequestToken(), // Cookie 值放入请求头
+  },
+  body: JSON.stringify({ to: 'alice', amount: 100 }),
+});
+
+// 服务端验证
+function doubleCookieCheck(req, res, next) {
+  const cookieToken = req.cookies.request_token;
+  const headerToken = req.headers['x-request-token'];
+
+  if (cookieToken && headerToken && cookieToken === headerToken) {
+    return next();
+  }
+  res.status(403).json({ error: 'CSRF check failed' });
+}
+
+// 原理：攻击网站可以触发带 Cookie 的请求，
+// 但无法读取 Cookie 值（同源策略限制），
+// 所以无法在请求头中添加正确的 Token</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">SameSite=Lax 能完全防 CSRF 吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>几乎可以。Lax 模式下，跨站 POST/JS 请求不携带 Cookie，GET 方式的 CSRF 也很少（因为 GET 不应修改数据）。但有两个例外：① &lt;a&gt; 链接导航携带 Cookie（Top-level navigation）；② 2 分钟内的 POST 表单也携带 Cookie（Chrome 临时例外）。最安全方案：SameSite=Lax + CSRF Token。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">CSRF Token 放 Cookie 里安全吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>如果只是 Cookie 中存储 Token 而不在请求中携带，那就等于没有防御（攻击者请求也会自动带上 Cookie）。双重 Cookie 方案要求同时从 Cookie 读取值放入请求头，利用的是攻击者无法读取跨域 Cookie 值。更安全的方案：Token 存服务端 session，通过页面注入传给前端。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 GET 请求不应有副作用</div>
+          <p>CSRF 对 GET 请求的攻击最简单（&lt;img&gt; 标签即可）。确保所有修改数据的操作都使用 POST/PUT/DELETE，GET 只用于查询。这是 RESTful 设计原则，也是安全基础。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Glossary/CSRF" target="_blank">MDN - CSRF</a></li>
+          <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html" target="_blank">OWASP CSRF 防御速查</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>什么是 CSRF？怎么防御？</div>
+          <div class="iq-hint">CSRF 是跨站请求伪造，利用浏览器自动携带 Cookie 的特性冒充用户身份。防御：① CSRF Token（服务端生成，前端提交时携带）；② SameSite Cookie（Lax/Strict 限制跨站发送）；③ 双重 Cookie 验证；④ Origin/Referer 检查；⑤ 敏感操作二次验证。推荐：SameSite=Lax + CSRF Token 组合。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>CSRF 和 XSS 的区别？</div>
+          <div class="iq-hint">XSS：注入恶意脚本在用户浏览器执行，可窃取 Cookie/Token、篡改页面。CSRF：借用用户身份发起请求，不注入代码。XSS 可以绕过 CSRF Token（通过脚本读取 Token 值），所以防 XSS 也是防 CSRF 的前提。防御优先级：先防 XSS，再防 CSRF。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

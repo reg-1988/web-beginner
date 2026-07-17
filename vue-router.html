@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue Router - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="vue-router">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>框架生态</span><span class="sep">/</span><span>Vue Router</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-vue">Vue</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">Vue Router</h1>
+        <p class="page-subtitle">Vue Router 是 Vue.js 的官方路由管理器——掌握路由配置、导航守卫、懒加载和动态路由，是构建单页应用的关键。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>Vue Router</strong>是 Vue.js 的官方路由，用于构建单页应用（SPA）。它通过<strong>History API</strong>或<strong>Hash 模式</strong>管理 URL，将 URL 路径映射到组件，实现无刷新的页面切换。</p>
+        <p>路由的核心概念：<strong>路由映射</strong>（URL → 组件）、<strong>嵌套路由</strong>（父路由包含子路由）、<strong>导航守卫</strong>（路由切换时的拦截和控制）、<strong>动态路由</strong>（参数化路径）、<strong>懒加载</strong>（按需加载组件）。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 路由模式</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>模式</th><th>URL 格式</th><th>原理</th><th>服务器配置</th></tr></thead>
+            <tbody>
+              <tr><td>Hash</td><td><code>example.com/#/user</code></td><td>hashchange 事件</td><td>不需要</td></tr>
+              <tr><td>History</td><td><code>example.com/user</code></td><td>History API (pushState)</td><td>需要回退到 index.html</td></tr>
+              <tr><td>Memory</td><td>无 URL 变化</td><td>内存中管理</td><td>SSR 使用</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 导航守卫</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>守卫类型</th><th>位置</th><th>常用场景</th></tr></thead>
+            <tbody>
+              <tr><td>全局前置</td><td><code>router.beforeEach</code></td><td>登录检查、权限验证</td></tr>
+              <tr><td>全局解析</td><td><code>router.beforeResolve</code></td><td>确保数据加载完成</td></tr>
+              <tr><td>全局后置</td><td><code>router.afterEach</code></td><td>页面标题、进度条、埋点</td></tr>
+              <tr><td>路由独享</td><td><code>beforeEnter</code></td><td>特定路由的权限控制</td></tr>
+              <tr><td>组件内</td><td><code>onBeforeRouteLeave/Enter</code></td><td>未保存提示、数据预取</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 路由元信息（Meta）</h3>
+        <p>每个路由可以携带 meta 信息，用于导航守卫中的逻辑判断。TypeScript 中可通过 <code>RouteMeta</code> 扩展类型。</p>
+        <pre><code class="code-label">TypeScript</code>// 扩展路由元信息类型
+declare module 'vue-router' {
+  interface RouteMeta {
+    requiresAuth?: boolean;  // 是否需要登录
+    title?: string;          // 页面标题
+    permissions?: string[];  // 所需权限
+    keepAlive?: boolean;     // 是否缓存组件
+  }
+}</code></pre>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：完整的路由配置</h3>
+        <pre><code class="code-label">JavaScript</code>// router/index.js
+import { createRouter, createWebHistory } from 'vue-router';
+
+const routes = [
+  {
+    path: '/',
+    component: () => import('@/layouts/DefaultLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Home',
+        component: () => import('@/views/Home.vue'),
+        meta: { title: '首页' },
+      },
+      {
+        path: 'about',
+        name: 'About',
+        component: () => import('@/views/About.vue'),
+        meta: { title: '关于' },
+      },
+    ],
+  },
+  {
+    path: '/admin',
+    component: () => import('@/layouts/AdminLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'Dashboard',
+        component: () => import('@/views/admin/Dashboard.vue'),
+      },
+      {
+        path: 'users',
+        name: 'UserManage',
+        component: () => import('@/views/admin/Users.vue'),
+        meta: { permissions: ['user:manage'] },
+      },
+    ],
+  },
+  // 动态路由
+  {
+    path: '/user/:id',
+    name: 'UserProfile',
+    component: () => import('@/views/UserProfile.vue'),
+    props: true, // 将路由参数作为 props 传入组件
+  },
+  // 404 兜底
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
+  },
+];
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    return savedPosition || { top: 0 }; // 滚动到顶部或恢复位置
+  },
+});
+
+export default router;</code></pre>
+
+        <h3 class="subsection-title">示例二：全局导航守卫</h3>
+        <pre><code class="code-label">JavaScript</code>// router/guards.js
+import { useAuthStore } from '@/stores/auth';
+
+export function setupGuards(router) {
+  const auth = useAuthStore();
+
+  // 全局前置守卫
+  router.beforeEach(async (to, from) => {
+    // 进度条
+    NProgress.start();
+
+    // 登录检查
+    if (to.meta.requiresAuth && !auth.isLoggedIn) {
+      return {
+        name: 'Login',
+        query: { redirect: to.fullPath }, // 保存目标路径
+      };
+    }
+
+    // 权限检查
+    if (to.meta.permissions?.length) {
+      const hasPermission = to.meta.permissions.every(
+        p => auth.permissions.includes(p)
+      );
+      if (!hasPermission) return { name: 'Forbidden' };
+    }
+
+    // 页面标题
+    document.title = to.meta.title
+      ? `${to.meta.title} - MyApp`
+      : 'MyApp';
+  });
+
+  // 全局后置钩子
+  router.afterEach(() => {
+    NProgress.done();
+  });
+}
+
+// 组件内守卫
+// &lt;script setup&gt;
+// import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
+//
+// onBeforeRouteLeave((to, from) => {
+//   if (hasUnsavedChanges.value) {
+//     const answer = confirm('有未保存的更改，确定离开吗？');
+//     if (!answer) return false;
+//   }
+// });
+// &lt;/script&gt;</code></pre>
+
+        <h3 class="subsection-title">示例三：动态路由与权限路由</h3>
+        <pre><code class="code-label">JavaScript</code>// 根据用户角色动态添加路由
+export function addDynamicRoutes(router, userRole) {
+  const roleRoutes = {
+    admin: [
+      {
+        path: '/admin',
+        component: () => import('@/layouts/AdminLayout.vue'),
+        children: [
+          { path: 'settings', component: () => import('@/views/admin/Settings.vue') },
+          { path: 'logs', component: () => import('@/views/admin/Logs.vue') },
+        ],
+      },
+    ],
+    editor: [
+      {
+        path: '/editor',
+        component: () => import('@/views/EditorDashboard.vue'),
+      },
+    ],
+  };
+
+  const routes = roleRoutes[userRole] || [];
+  routes.forEach(route => {
+    router.addRoute(route); // 动态添加路由
+  });
+}
+
+// 登录后添加路由
+async function login(credentials) {
+  const { role } = await authApi.login(credentials);
+  addDynamicRoutes(router, role);
+  router.push('/'); // 跳转到首页
+}
+
+// 注意：动态路由刷新后会丢失，需在 router.beforeEach 中重新添加</code></pre>
+
+        <h3 class="subsection-title">示例四：路由过渡与 KeepAlive</h3>
+        <pre><code class="code-label">Vue</code>&lt;template&gt;
+  &lt;router-view v-slot="{ Component, route }"&gt;
+    &lt;transition name="fade" mode="out-in"&gt;
+      &lt;keep-alive :include="cachedViews"&gt;
+        &lt;component :is="Component" :key="route.path" /&gt;
+      &lt;/keep-alive&gt;
+    &lt;/transition&gt;
+  &lt;/router-view&gt;
+&lt;/template&gt;
+
+&lt;script setup&gt;
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+// 根据路由 meta.keepAlive 决定是否缓存
+const cachedViews = computed(() => {
+  return router.getRoutes()
+    .filter(route => route.meta?.keepAlive)
+    .map(route => route.name);
+});
+&lt;/script&gt;
+
+&lt;style&gt;
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+&lt;/style&gt;</code></pre>
+
+        <h3 class="subsection-title">示例五：页面数据预取</h3>
+        <pre><code class="code-label">JavaScript</code>// 方案一：导航守卫中预取数据
+router.beforeResolve(async (to) => {
+  // 收集需要预取数据的路由组件
+  const matched = to.matched.filter(
+    record => record.meta?.preload
+  );
+
+  // 并行预取
+  await Promise.all(
+    matched.map(record => {
+      if (record.meta.preload) {
+        return record.meta.preload(to.params);
+      }
+    })
+  );
+});
+
+// 方案二：组件内 watch 路由变化
+// &lt;script setup&gt;
+// import { watch } from 'vue';
+// import { useRoute } from 'vue-router';
+//
+// const route = useRoute();
+//
+// async function fetchData(id) {
+//   loading.value = true;
+//   data.value = await api.getItem(id);
+//   loading.value = false;
+// }
+//
+// // 初始加载
+// fetchData(route.params.id);
+//
+// // 路由参数变化时重新获取
+// watch(() => route.params.id, (newId) => {
+//   if (newId) fetchData(newId);
+// });
+// &lt;/script&gt;</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">History 模式 404 问题怎么解决？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>History 模式下刷新页面，服务器会查找对应文件，找不到返回 404。解决方案：配置服务器将所有路径回退到 index.html。Nginx：<code>try_files $uri $uri/ /index.html;</code>。Express：<code>app.get('*', (req, res) => res.sendFile('index.html'))</code>。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">路由懒加载 vs 全量加载？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>懒加载（<code>() => import('./View.vue')</code>）将组件拆分为独立 chunk，按需加载，减小首屏体积。全量加载将所有组件打包到一个文件，首屏加载慢但后续切换无网络请求。推荐：首屏必需的路由全量加载，其他路由懒加载。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">如何实现路由缓存（KeepAlive）？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>用 &lt;keep-alive&gt; 包裹 &lt;router-view&gt;，通过 include/exclude 控制缓存组件。设置 meta.keepAlive 标记需要缓存的路由。注意：缓存组件不会重新触发 setup/mounted，使用 onActivated/onDeactivated 代替。缓存过多组件会占用内存。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 动态路由刷新丢失</div>
+          <p>通过 <code>router.addRoute()</code> 添加的动态路由在页面刷新后会丢失。必须在路由初始化时重新添加。解决方案：在 beforeEach 守卫中检查是否已添加动态路由，未添加则从服务端获取权限后重新 addRoute。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ 避免在导航守卫中直接修改 DOM</div>
+          <p>导航守卫中不应该操作 DOM（此时组件可能还未挂载）。需要 DOM 操作的逻辑放在组件的 onMounted 或 onActivated 中。守卫只做逻辑判断（权限检查、数据预取）。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://router.vuejs.org/zh/" target="_blank">Vue Router 官方文档</a></li>
+          <li><a href="https://router.vuejs.org/zh/guide/advanced/navigation-guards.html" target="_blank">Vue Router - 导航守卫</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>Hash 模式和 History 模式有什么区别？</div>
+          <div class="iq-hint">Hash：URL 带 #，通过 hashchange 事件监听，不需要服务器配置，SEO 不友好。History：URL 无 #，使用 pushState/replaceState，需要服务器配置回退到 index.html，SEO 友好。生产环境推荐 History 模式。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>如何实现路由权限控制？</div>
+          <div class="iq-hint">① 全局前置守卫 router.beforeEach 检查 meta.requiresAuth；② 白名单路由（登录页等）直接放行；③ 未登录跳转登录页并保存目标路径；④ 登录后根据角色动态添加路由（router.addRoute）；⑤ 路由独享守卫 beforeEnter 做精细控制。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>Vue Router 懒加载的原理？</div>
+          <div class="iq-hint">使用动态 import() 语法：<code>() => import('./View.vue')</code>。Webpack/Vite 将每个动态 import 拆分为独立 chunk 文件。路由切换时浏览器按需下载对应 chunk。结合 Webpack Magic Comments 可命名 chunk：<code>() => import(/* webpackChunkName: "about" */ './About.vue')</code>。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

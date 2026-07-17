@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>微信小程序开发 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="mobile-miniprogram">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>移动端H5</span><span class="sep">/</span><span>微信小程序开发</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">移动端</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">微信小程序开发</h1>
+        <p class="page-subtitle">微信小程序有独特的双线程架构和组件体系——理解其运行机制和开发规范，是进入小程序开发领域的第一步。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>微信小程序</strong>是微信提供的轻量级应用形态，无需安装即可使用。它采用<strong>双线程模型</strong>：渲染层（WebView）和逻辑层（JsCore）分别运行在不同线程，通过 Native 层通信。</p>
+        <p>小程序的开发语言不是 HTML/CSS/JS，而是 WXML（模板）、WXSS（样式）、JS（逻辑）、JSON（配置）。虽然语法类似 Web，但底层机制完全不同。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 双线程模型</h3>
+        <pre><code class="code-label">text">┌──────────────────────────────────────────┐
+│              微信客户端 (Native)           │
+│  ┌──────────┐  WeixinJSBridge  ┌───────┐ │
+│  │ 渲染层    │ ←─────────────→ │ 逻辑层 │ │
+│  │ (WebView) │   数据通信       │ (JSCore)│ │
+│  │ 多个页面   │                 │ 单实例  │ │
+│  └──────────┘                  └───────┘ │
+│        ↑                           ↑      │
+│    WXML/WXSS                    JS       │
+└──────────────────────────────────────────┘
+
+优势：逻辑与渲染分离，JS 不会阻塞 UI
+代价：通信有开销，不能直接操作 DOM</code></pre>
+
+        <h3 class="subsection-title">2.2 生命周期</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>App 生命周期</th><th>Page 生命周期</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>onLaunch</td><td>—</td><td>小程序初始化</td></tr>
+              <tr><td>onShow</td><td>onShow</td><td>从后台进入前台</td></tr>
+              <tr><td>onHide</td><td>onHide</td><td>从前台进入后台</td></tr>
+              <tr><td>—</td><td>onLoad</td><td>页面加载（一次）</td></tr>
+              <tr><td>—</td><td>onReady</td><td>页面初次渲染完成</td></tr>
+              <tr><td>—</td><td>onUnload</td><td>页面卸载</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 小程序 vs H5</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>特性</th><th>小程序</th><th>H5</th></tr></thead>
+            <tbody>
+              <tr><td>运行环境</td><td>微信客户端</td><td>浏览器</td></tr>
+              <tr><td>DOM 操作</td><td>不支持（数据驱动）</td><td>支持</td></tr>
+              <tr><td>网络请求</td><td>wx.request（需配置域名）</td><td>fetch/XMLHttpRequest</td></tr>
+              <tr><td>组件</td><td>原生 + 自定义组件</td><td>HTML 标签</td></tr>
+              <tr><td>包大小</td><td>主包 ≤ 2MB，总 ≤ 20MB</td><td>无限制</td></tr>
+              <tr><td>API 能力</td><td>支付、扫码、定位等</td><td>受限（需用户授权）</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：页面开发</h3>
+        <pre><code class="code-label">WXML</code>&lt;!-- pages/user/user.wxml --&gt;
+&lt;view class="container"&gt;
+  &lt;view class="profile" bindtap="onAvatarTap"&gt;
+    &lt;image src="{{userInfo.avatar}}" mode="aspectFill" /&gt;
+    &lt;text&gt;{{userInfo.name}}&lt;/text&gt;
+  &lt;/view&gt;
+  &lt;view wx:for="{{menus}}" wx:key="id" class="menu-item" bindtap="onMenuTap" data-id="{{item.id}}"&gt;
+    &lt;text&gt;{{item.title}}&lt;/text&gt;
+  &lt;/view&gt;
+&lt;/view&gt;</code></pre>
+        <pre><code class="code-label">JavaScript</code>// pages/user/user.js
+Page({
+  data: {
+    userInfo: { avatar: '', name: '未登录' },
+    menus: [
+      { id: 'orders', title: '我的订单' },
+      { id: 'settings', title: '设置' },
+    ],
+  },
+
+  onLoad(options) {
+    this.loadUserInfo();
+  },
+
+  async loadUserInfo() {
+    const res = await wx.request({ url: '/api/user' });
+    this.setData({ userInfo: res.data });
+  },
+
+  onAvatarTap() {
+    wx.navigateTo({ url: '/pages/login/login' });
+  },
+
+  onMenuTap(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: `/pages/${id}/${id}` });
+  },
+});</code></pre>
+
+        <h3 class="subsection-title">示例二：自定义组件</h3>
+        <pre><code class="code-label">JSON</code>// components/rating/rating.json
+{ "component": true }</code></pre>
+        <pre><code class="code-label">JavaScript</code>// components/rating/rating.js
+Component({
+  properties: {
+    value: { type: Number, value: 0 },
+    max: { type: Number, value: 5 },
+    size: { type: Number, value: 24 },
+    readonly: { type: Boolean, value: false },
+  },
+
+  data: {
+    stars: [],
+  },
+
+  observers: {
+    'value, max': function(value, max) {
+      const stars = [];
+      for (let i = 1; i <= max; i++) {
+        stars.push(i <= value ? 'full' : i - 0.5 <= value ? 'half' : 'empty');
+      }
+      this.setData({ stars });
+    },
+  },
+
+  methods: {
+    onStarTap(e) {
+      if (this.data.readonly) return;
+      const index = e.currentTarget.dataset.index + 1;
+      this.triggerEvent('change', { value: index });
+    },
+  },
+});</code></pre>
+
+        <h3 class="subsection-title">示例三：分包加载</h3>
+        <pre><code class="code-label">JSON</code>// app.json
+{
+  "pages": [
+    "pages/index/index",
+    "pages/home/home"
+  ],
+  "subpackages": [
+    {
+      "root": "packageA",
+      "name": "shop",
+      "pages": [
+        "pages/product/product",
+        "pages/cart/cart"
+      ]
+    },
+    {
+      "root": "packageB",
+      "name": "user",
+      "pages": [
+        "pages/profile/profile",
+        "pages/orders/orders"
+      ],
+      "independent": true
+    }
+  ],
+  "preloadRule": {
+    "pages/index/index": {
+      "network": "wifi",
+      "packages": ["shop"]
+    }
+  }
+}</code></pre>
+
+        <h3 class="subsection-title">示例四：网络请求封装</h3>
+        <pre><code class="code-label">JavaScript</code>// utils/request.js
+const BASE_URL = 'https://api.example.com';
+
+function request(options) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: BASE_URL + options.url,
+      method: options.method || 'GET',
+      data: options.data,
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${wx.getStorageSync('token')}`,
+        ...options.header,
+      },
+      success(res) {
+        if (res.statusCode === 200) {
+          resolve(res.data);
+        } else if (res.statusCode === 401) {
+          wx.navigateTo({ url: '/pages/login/login' });
+          reject(new Error('未登录'));
+        } else {
+          reject(new Error(`HTTP ${res.statusCode}`));
+        }
+      },
+      fail: reject,
+    });
+  });
+}
+
+// 使用
+const data = await request({
+  url: '/api/products',
+  method: 'GET',
+  data: { page: 1 },
+});</code></pre>
+
+        <h3 class="subsection-title">示例五：性能优化要点</h3>
+        <pre><code class="code-label">text">1. setData 优化
+   - 不要频繁调用 setData（合并更新）
+   - 只传必要的数据（不要传整个大对象）
+   - 避免 setData 设置不在 WXML 中使用的数据
+
+2. 列表渲染优化
+   - 必须加 wx:key
+   - 长列表使用 recycle-view（虚拟列表）
+   - 避免在 wx:for 中使用复杂计算
+
+3. 图片优化
+   - 使用 mode 属性（aspectFill/widthFix）
+   - 使用 lazy-load 懒加载
+   - CDN 压缩 + WebP 格式
+
+4. 分包优化
+   - 主包只放 TabBar 页面和公共资源
+   - 独立分包实现页面独立运行
+   - 分包预加载提升体验
+
+5. 避免使用 CSS :hover（移动端无效）
+   使用 hover-class 替代</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">setData 为什么不能频繁调用？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>setData 是跨线程通信，每次调用都会：① 逻辑层序列化数据；② 经 Native 层转发；③ 渲染层反序列化并重新渲染。频繁调用导致通信开销大。最佳实践：合并多次 setData 为一次；只传变化的数据字段。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">小程序怎么调试真机？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>微信开发者工具 → 预览/真机调试 → 扫码在手机上打开。真机调试支持 vConsole 和远程调试。注意：部分 API（支付、扫码）只能在真机测试，开发者工具中模拟。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 小程序不支持 DOM 操作</div>
+          <p>小程序没有 document/window 对象，不能使用 jQuery 等 DOM 库。所有 UI 更新必须通过 setData 驱动。如果需要动态效果，使用 WXS（WeiXin Script）响应事件或 Canvas 绑定动画。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developers.weixin.qq.com/miniprogram/dev/framework/" target="_blank">微信小程序官方文档</a></li>
+          <li><a href="https://taro.zone/" target="_blank">Taro - 多端统一开发框架</a></li>
+          <li><a href="https://uniapp.dcloud.net.cn/" target="_blank">uni-app - 跨端开发框架</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>小程序的双线程模型是什么？</div>
+          <div class="iq-hint">渲染层（WebView）处理 WXML/WXSS 渲染，逻辑层（JSCore）执行 JS。两者通过 Native 层通信。优势：JS 不阻塞 UI 渲染，更安全（不能直接操作 DOM）。代价：通信有开销，setData 是跨线程通信。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>小程序的 setData 有什么性能问题？怎么优化？</div>
+          <div class="iq-hint">setData 是跨线程通信，开销大。优化：① 合并多次 setData 为一次；② 只传变化字段（不要每次传整个对象）；③ 避免设置不在 WXML 中使用的数据（用 this._privateData 代替）；④ 长列表用虚拟列表。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

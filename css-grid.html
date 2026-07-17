@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grid 布局 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="css-grid">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>HTML5 & CSS3</span><span class="sep">/</span><span>Grid 布局</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-css">CSS</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">Grid 布局</h1>
+        <p class="page-subtitle">CSS Grid 是真正的二维布局系统——用行列定义网格，精确定位每个元素，让复杂布局变得简单直观。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>CSS Grid Layout</strong>是 CSS 提供的二维布局系统，允许开发者同时在行和列两个维度上控制元素的排列。与 Flexbox 的一维布局不同，Grid 可以定义一个由行和列组成的网格，然后将元素精确放置到网格的指定位置上。</p>
+        <p>Grid 的核心思想是<strong>布局先行</strong>：先定义网格的结构（多少行、多少列、间距多大），再将内容填入网格。这与传统的内容驱动布局（内容决定位置）形成对比。Grid 特别适合页面级别的布局——头部、侧栏、主内容区、底部这些区块的排列，用 Grid 只需几行 CSS 就能完成。</p>
+        <p>Grid 与 Flexbox 不是替代关系，而是互补关系。Grid 擅长二维的整体布局规划，Flexbox 擅长一维的组件内部排列。最佳实践是：Grid 搭骨架，Flexbox 做细节。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 Grid 容器属性</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>属性</th><th>说明</th><th>关键值</th></tr></thead>
+            <tbody>
+              <tr><td><code>grid-template-columns</code></td><td>定义列轨道</td><td>track-size / fr / repeat() / auto-fill/auto-fit / minmax()</td></tr>
+              <tr><td><code>grid-template-rows</code></td><td>定义行轨道</td><td>同上</td></tr>
+              <tr><td><code>grid-template-areas</code></td><td>命名区域布局</td><td>字符串模板</td></tr>
+              <tr><td><code>gap</code></td><td>行列间距</td><td>&lt;length&gt;</td></tr>
+              <tr><td><code>grid-auto-flow</code></td><td>自动放置方向</td><td>row / column / dense</td></tr>
+              <tr><td><code>grid-auto-columns</code></td><td>隐式列轨道大小</td><td>track-size</td></tr>
+              <tr><td><code>grid-auto-rows</code></td><td>隐式行轨道大小</td><td>track-size</td></tr>
+              <tr><td><code>justify-items</code></td><td>所有项目水平对齐</td><td>start / end / center / stretch</td></tr>
+              <tr><td><code>align-items</code></td><td>所有项目垂直对齐</td><td>同上</td></tr>
+              <tr><td><code>justify-content</code></td><td>网格整体水平对齐</td><td>start / end / center / space-between / space-around / space-evenly</td></tr>
+              <tr><td><code>align-content</code></td><td>网格整体垂直对齐</td><td>同上</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 Grid 项目属性</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>属性</th><th>说明</th><th>关键值</th></tr></thead>
+            <tbody>
+              <tr><td><code>grid-column</code></td><td>列起始/结束</td><td>line / span n / area-name</td></tr>
+              <tr><td><code>grid-row</code></td><td>行起始/结束</td><td>同上</td></tr>
+              <tr><td><code>grid-area</code></td><td>区域名或四线简写</td><td>name / row-start / col-start / row-end / col-end</td></tr>
+              <tr><td><code>justify-self</code></td><td>单个项目水平对齐</td><td>start / end / center / stretch</td></tr>
+              <tr><td><code>align-self</code></td><td>单个项目垂直对齐</td><td>同上</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 fr 单位与 repeat()</h3>
+        <p><code>fr</code>（fraction）是 Grid 特有的弹性长度单位，表示可用空间的一个等份。<code>1fr 1fr 1fr</code> 将空间三等分。<code>1fr 2fr</code> 则第二列是第一列的两倍。fr 与固定单位混用时，固定单位先分配，剩余空间再按 fr 分配。</p>
+        <p><code>repeat()</code> 简化重复的轨道定义：<code>repeat(3, 1fr)</code> 等价于 <code>1fr 1fr 1fr</code>。<code>repeat(auto-fill, minmax(200px, 1fr))</code> 是响应式网格的常用模式。</p>
+
+        <h3 class="subsection-title">2.4 auto-fill vs auto-fit</h3>
+        <p>两者都创建尽可能多的列轨道，区别在于空轨道的处理：<code>auto-fill</code> 保留空轨道（项目保持最小宽度不拉伸），<code>auto-fit</code> 将空轨道折叠为 0（项目拉伸填满容器）。当项目数量多到填满所有列时，两者行为完全相同。</p>
+
+        <h3 class="subsection-title">2.5 minmax() 函数</h3>
+        <p><code>minmax(min, max)</code> 定义轨道大小范围，常用组合：<code>minmax(200px, 1fr)</code>（最小200px，弹性扩展）、<code>minmax(0, 1fr)</code>（允许缩小到0，防止内容溢出）。</p>
+
+        <h3 class="subsection-title">2.6 grid-template-areas</h3>
+        <p>用字符串"画"出布局结构，最直观的 Grid 布局方式：</p>
+        <pre><code class="code-label">CSS</code>.page {
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "sidebar main   main"
+    "footer footer footer";
+  grid-template-columns: 240px 1fr 1fr;
+  grid-template-rows: 64px 1fr 48px;
+  gap: 16px;
+}
+.page-header  { grid-area: header; }
+.page-sidebar { grid-area: sidebar; }
+.page-main    { grid-area: main; }
+.page-footer  { grid-area: footer; }</code></pre>
+
+        <h3 class="subsection-title">2.7 Grid vs Flexbox</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>维度</th><th>Grid</th><th>Flexbox</th></tr></thead>
+            <tbody>
+              <tr><td>维度</td><td>二维（行+列）</td><td>一维（行或列）</td></tr>
+              <tr><td>设计思路</td><td>布局驱动</td><td>内容驱动</td></tr>
+              <tr><td>项目定位</td><td>精确定位，可跨行跨列</td><td>按流式排列</td></tr>
+              <tr><td>重叠</td><td>支持</td><td>不支持</td></tr>
+              <tr><td>最佳场景</td><td>页面布局、仪表盘</td><td>导航栏、工具栏、居中</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：响应式页面布局</h3>
+        <pre><code class="code-label">CSS</code>.page {
+  display: grid;
+  grid-template-areas:
+    "header  header  header"
+    "sidebar content aside"
+    "footer  footer  footer";
+  grid-template-columns: 240px 1fr 200px;
+  grid-template-rows: 64px 1fr 48px;
+  gap: 16px;
+  min-height: 100vh;
+}
+.page-header  { grid-area: header; }
+.page-sidebar { grid-area: sidebar; }
+.page-content { grid-area: content; }
+.page-aside   { grid-area: aside; }
+.page-footer  { grid-area: footer; }
+
+@media (max-width: 1024px) {
+  .page {
+    grid-template-areas:
+      "header  header"
+      "sidebar content"
+      "footer  footer";
+    grid-template-columns: 200px 1fr;
+  }
+  .page-aside { display: none; }
+}
+@media (max-width: 768px) {
+  .page {
+    grid-template-areas: "header" "content" "footer";
+    grid-template-columns: 1fr;
+  }
+  .page-sidebar { display: none; }
+}</code></pre>
+
+        <h3 class="subsection-title">示例二：响应式图片网格</h3>
+        <pre><code class="code-label">CSS</code>.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+.photo-grid img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* 带特色图的画廊 */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 200px;
+  gap: 8px;
+}
+.gallery .featured { grid-column: span 2; grid-row: span 2; }
+.gallery .wide { grid-column: span 2; }</code></pre>
+
+        <h3 class="subsection-title">示例三：仪表盘布局</h3>
+        <pre><code class="code-label">CSS</code>.dashboard {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: 56px 1fr;
+  grid-template-areas: "sidebar topbar" "sidebar main";
+  height: 100vh;
+}
+.dashboard .sidebar { grid-area: sidebar; background: #1e293b; }
+.dashboard .topbar { grid-area: topbar; display: flex; align-items: center; }
+.dashboard .main { grid-area: main; padding: 24px; overflow-y: auto; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.charts-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}</code></pre>
+
+        <h3 class="subsection-title">示例四：跨行跨列与重叠</h3>
+        <pre><code class="code-label">CSS</code>.layout {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(100px, auto);
+  gap: 16px;
+}
+.item-wide { grid-column: span 2; }
+.item-tall { grid-row: span 2; }
+.item-featured { grid-column: span 2; grid-row: span 2; }
+
+/* 使用 -1 引用最后一条网格线 */
+.full-width { grid-column: 1 / -1; }
+
+/* 重叠效果 */
+.hero-banner { grid-column: 1 / -1; grid-row: 1 / -1; z-index: 1; }
+.hero-text   { grid-column: 2 / 4; grid-row: 2; z-index: 2; align-self: center; }</code></pre>
+
+        <h3 class="subsection-title">示例五：Subgrid 对齐</h3>
+        <pre><code class="code-label">CSS</code>.card-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto 1fr auto; /* 4行：标题/元信息/内容/底部 */
+  gap: 16px;
+}
+.card {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid; /* 继承父网格行定义，所有卡片行对齐 */
+  gap: 8px 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+}
+.card .actions { margin-top: auto; }</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">auto-fill 和 auto-fit 有什么区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>auto-fill 保留空轨道占据空间，项目保持 minmax 定义的最小宽度；auto-fit 将空轨道折叠为 0 宽度，让有项目的轨道拉伸填满。项目数量填满所有列时两者行为完全相同。选择：项目保持原始大小用 auto-fill，项目拉伸填满用 auto-fit。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">为什么 grid-template-rows: 1fr 没有让行占满？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>fr 基于剩余空间分配，需要容器有确定高度。如果容器高度由内容决定，就没有"剩余空间"，1fr 等于 auto。解决：设置 height: 100vh 或 min-height: 100vh。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">fr 轨道中内容溢出怎么办？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>1fr 的最小尺寸是 auto（由内容决定），长文本会溢出轨道。解决：使用 <code>minmax(0, 1fr)</code> 替代 <code>1fr</code>，配合项目上的 <code>min-width: 0</code>、<code>overflow: hidden</code> 和 <code>text-overflow: ellipsis</code>。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 fr 轨道内容溢出</div>
+          <p>使用 <code>minmax(0, 1fr)</code> 替代 <code>1fr</code>，并在项目上设 <code>min-width: 0</code> + <code>overflow: hidden</code>，防止内容撑破网格。</p>
+        </div>
+        <div class="callout callout-tip">
+          <div class="callout-title">💡 用 -1 引用最后网格线</div>
+          <p><code>grid-column: 1 / -1</code> 让项目跨越所有列。注意 -1 只在显式网格中有效。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://css-tricks.com/snippets/css/complete-guide-grid/" target="_blank">CSS-Tricks - Complete Guide to CSS Grid</a></li>
+          <li><a href="https://gridbyexample.com/" target="_blank">Grid by Example</a></li>
+          <li><a href="https://cssgridgarden.com/" target="_blank">CSS Grid Garden</a> — 互动学习游戏</li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>Grid 和 Flexbox 的区别？分别适合什么场景？</div>
+          <div class="iq-hint">Grid 是二维布局（行+列同时控制），布局驱动；Flexbox 是一维布局，内容驱动。页面整体布局、仪表盘、跨行跨列 → Grid；导航栏、工具栏、居中 → Flexbox。最佳实践：Grid 搭骨架，Flexbox 处理组件内部。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>auto-fill 和 auto-fit 的区别？</div>
+          <div class="iq-hint">auto-fill 保留空轨道空间，项目不拉伸；auto-fit 折叠空轨道为 0，项目拉伸填满。项目多到填满列时两者行为相同。区别仅在项目数量少于最大列数时。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>什么是 Subgrid？解决什么问题？</div>
+          <div class="iq-hint">Subgrid 让嵌套网格继承父网格轨道定义，子网格轨道与父网格对齐。解决嵌套网格各行高度独立无法对齐的问题。典型场景：卡片列表标题/内容/底部对齐。语法：grid-template-rows: subgrid。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

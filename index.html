@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>前端知识体系 - 初级到中级学习指南</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="index">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo">
+          <span class="logo-icon">FE</span>
+          <span>前端知识体系</span>
+        </a>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Main -->
+    <main class="main-content">
+      <div class="content-wrapper">
+        <!-- Hero -->
+        <div class="hero">
+          <h1 class="hero-title">前端开发知识体系</h1>
+          <p class="hero-desc">从零到一构建完整的前端技术知识框架，覆盖 HTML/CSS/JS 核心、浏览器原理、工程化、框架生态、移动端与性能安全，助你系统成长。</p>
+          <div class="stats-bar">
+            <div class="stat-item">
+              <div class="stat-number">7</div>
+              <div class="stat-label">核心模块</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">35</div>
+              <div class="stat-label">知识点</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">100+</div>
+              <div class="stat-label">代码示例</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Module 1: HTML5 & CSS3 -->
+        <h2 class="section-title">HTML5 &amp; CSS3 基础核心</h2>
+        <p>网页的骨架与皮肤，掌握语义化标签与现代 CSS 布局是一切的起点。</p>
+        <div class="kp-list">
+          <a class="kp-item" href="html5-semantic.html">
+            <span class="kp-num">01</span>
+            <span class="kp-info">
+              <span class="kp-title">HTML5 语义化</span>
+              <span class="kp-brief">语义化标签、文档结构、可访问性基础</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="css-selector.html">
+            <span class="kp-num">02</span>
+            <span class="kp-info">
+              <span class="kp-title">CSS 选择器与优先级</span>
+              <span class="kp-brief">选择器体系、优先级计算、继承与层叠</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="css-flexbox.html">
+            <span class="kp-num">03</span>
+            <span class="kp-info">
+              <span class="kp-title">Flexbox 布局</span>
+              <span class="kp-brief">弹性盒子模型、主轴交叉轴、对齐与分配</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="css-grid.html">
+            <span class="kp-num">04</span>
+            <span class="kp-info">
+              <span class="kp-title">Grid 布局</span>
+              <span class="kp-brief">网格布局、行列定义、区域与响应式</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="css-animation.html">
+            <span class="kp-num">05</span>
+            <span class="kp-info">
+              <span class="kp-title">CSS 动画与过渡</span>
+              <span class="kp-brief">transition、animation、keyframes、性能优化</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+        </div>
+
+        <!-- Module 2: JavaScript -->
+        <h2 class="section-title">JavaScript 核心与进阶</h2>
+        <p>前端开发的灵魂，深入理解 JS 核心机制是从初级迈向中级的关键。</p>
+        <div class="kp-list">
+          <a class="kp-item" href="js-types.html">
+            <span class="kp-num">06</span>
+            <span class="kp-info">
+              <span class="kp-title">数据类型与类型转换</span>
+              <span class="kp-brief">原始类型、引用类型、隐式转换、类型判断</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="js-scope-closure.html">
+            <span class="kp-num">07</span>
+            <span class="kp-info">
+              <span class="kp-title">作用域与闭包</span>
+              <span class="kp-brief">词法作用域、执行上下文、闭包原理与应用</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="js-prototype.html">
+            <span class="kp-num">08</span>
+            <span class="kp-info">
+              <span class="kp-title">原型与继承</span>
+              <span class="kp-brief">原型链、继承模式、class 语法糖</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="js-async.html">
+            <span class="kp-num">09</span>
+            <span class="kp-info">
+              <span class="kp-title">异步编程</span>
+              <span class="kp-brief">回调、Promise、async/await、事件循环</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="js-es6plus.html">
+            <span class="kp-num">10</span>
+            <span class="kp-info">
+              <span class="kp-title">ES6+ 新特性</span>
+              <span class="kp-brief">解构、展开运算、Map/Set、Proxy、迭代器</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+        </div>
+
+        <!-- Module 3: Browser & Network -->
+        <h2 class="section-title">浏览器原理与网络</h2>
+        <p>理解浏览器工作原理与网络协议，才能写出高性能的 Web 应用。</p>
+        <div class="kp-list">
+          <a class="kp-item" href="browser-event-loop.html">
+            <span class="kp-num">11</span>
+            <span class="kp-info">
+              <span class="kp-title">事件循环机制</span>
+              <span class="kp-brief">宏任务、微任务、执行顺序、常见面试题</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="browser-render.html">
+            <span class="kp-num">12</span>
+            <span class="kp-info">
+              <span class="kp-title">浏览器渲染原理</span>
+              <span class="kp-brief">DOM树、CSSOM、渲染流水线、重排重绘</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="browser-http.html">
+            <span class="kp-num">13</span>
+            <span class="kp-info">
+              <span class="kp-title">HTTP 协议</span>
+              <span class="kp-brief">HTTP/1.1、HTTP/2、HTTP/3、状态码、缓存</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="browser-storage.html">
+            <span class="kp-num">14</span>
+            <span class="kp-info">
+              <span class="kp-title">浏览器存储</span>
+              <span class="kp-brief">Cookie、localStorage、sessionStorage、IndexedDB</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="browser-cors.html">
+            <span class="kp-num">15</span>
+            <span class="kp-info">
+              <span class="kp-title">跨域与安全策略</span>
+              <span class="kp-brief">同源策略、CORS、JSONP、代理方案</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+        </div>
+
+        <!-- Module 4: Engineering -->
+        <h2 class="section-title">前端工程化基础</h2>
+        <p>从"写页面"到"做工程"，工程化能力是中级开发者的分水岭。</p>
+        <div class="kp-list">
+          <a class="kp-item" href="eng-module.html">
+            <span class="kp-num">16</span>
+            <span class="kp-info">
+              <span class="kp-title">模块化规范</span>
+              <span class="kp-brief">CommonJS、ESM、AMD、UMD 演进与对比</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="eng-npm.html">
+            <span class="kp-num">17</span>
+            <span class="kp-info">
+              <span class="kp-title">包管理器 npm/yarn</span>
+              <span class="kp-brief">依赖管理、语义版本、锁文件、私有仓库</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="eng-webpack.html">
+            <span class="kp-num">18</span>
+            <span class="kp-info">
+              <span class="kp-title">Webpack 基础</span>
+              <span class="kp-brief">核心概念、Loader、Plugin、优化配置</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="eng-babel.html">
+            <span class="kp-num">19</span>
+            <span class="kp-info">
+              <span class="kp-title">Babel 与编译</span>
+              <span class="kp-brief">AST、编译流程、预设与插件、polyfill</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="eng-eslint.html">
+            <span class="kp-num">20</span>
+            <span class="kp-info">
+              <span class="kp-title">ESLint 与代码规范</span>
+              <span class="kp-brief">规则配置、Prettier 集成、团队协作规范</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+        </div>
+
+        <!-- Module 5: Frameworks -->
+        <h2 class="section-title">前端框架生态</h2>
+        <p>Vue 3 和 React 是当前最主流的两大框架，掌握它们是现代前端的必修课。</p>
+        <div class="kp-list">
+          <a class="kp-item" href="vue3-basics.html">
+            <span class="kp-num">21</span>
+            <span class="kp-info">
+              <span class="kp-title">Vue 3 基础</span>
+              <span class="kp-brief">响应式原理、模板语法、组件基础、生命周期</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="vue3-composition.html">
+            <span class="kp-num">22</span>
+            <span class="kp-info">
+              <span class="kp-title">Vue 3 组合式 API</span>
+              <span class="kp-brief">setup、ref/reactive、computed/watch、组合函数</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="vue-router.html">
+            <span class="kp-num">23</span>
+            <span class="kp-info">
+              <span class="kp-title">Vue Router</span>
+              <span class="kp-brief">路由配置、导航守卫、懒加载、动态路由</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="react-basics.html">
+            <span class="kp-num">24</span>
+            <span class="kp-info">
+              <span class="kp-title">React 基础</span>
+              <span class="kp-brief">JSX、组件、Props/State、生命周期、事件处理</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="react-hooks.html">
+            <span class="kp-num">25</span>
+            <span class="kp-info">
+              <span class="kp-title">React Hooks</span>
+              <span class="kp-brief">useState、useEffect、自定义 Hook、Hooks 规则</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+        </div>
+
+        <!-- Module 6: Mobile H5 -->
+        <h2 class="section-title">移动端H5开发实战</h2>
+        <p>H5 开发不仅是网页的缩小版，需要面对适配、性能、交互等独特挑战。</p>
+        <div class="kp-list">
+          <a class="kp-item" href="mobile-adapt.html">
+            <span class="kp-num">26</span>
+            <span class="kp-info">
+              <span class="kp-title">移动端适配</span>
+              <span class="kp-brief">viewport、rem/vw、媒体查询、安全区域</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="mobile-touch.html">
+            <span class="kp-num">27</span>
+            <span class="kp-info">
+              <span class="kp-title">触摸与手势事件</span>
+              <span class="kp-brief">touch 事件、手势识别、300ms 延迟、passive</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="mobile-pwa.html">
+            <span class="kp-num">28</span>
+            <span class="kp-info">
+              <span class="kp-title">PWA 基础</span>
+              <span class="kp-brief">Service Worker、离线缓存、推送通知、安装</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="mobile-miniprogram.html">
+            <span class="kp-num">29</span>
+            <span class="kp-info">
+              <span class="kp-title">微信小程序开发</span>
+              <span class="kp-brief">双线程模型、生命周期、组件体系、发布流程</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="mobile-performance.html">
+            <span class="kp-num">30</span>
+            <span class="kp-info">
+              <span class="kp-title">H5 性能优化</span>
+              <span class="kp-brief">首屏优化、懒加载、虚拟列表、骨架屏</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+        </div>
+
+        <!-- Module 7: Performance & Security -->
+        <h2 class="section-title">性能优化与安全</h2>
+        <p>性能决定用户体验，安全关乎产品存亡，这是高级工程师的核心素养。</p>
+        <div class="kp-list">
+          <a class="kp-item" href="perf-web.html">
+            <span class="kp-num">31</span>
+            <span class="kp-info">
+              <span class="kp-title">Web 性能优化</span>
+              <span class="kp-brief">核心指标、加载优化、运行时优化、工具链</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="perf-monitor.html">
+            <span class="kp-num">32</span>
+            <span class="kp-info">
+              <span class="kp-title">前端监控</span>
+              <span class="kp-brief">错误监控、性能监控、埋点方案、数据上报</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="sec-xss.html">
+            <span class="kp-num">33</span>
+            <span class="kp-info">
+              <span class="kp-title">XSS 防御</span>
+              <span class="kp-brief">攻击类型、防御策略、CSP、输入输出过滤</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="sec-csrf.html">
+            <span class="kp-num">34</span>
+            <span class="kp-info">
+              <span class="kp-title">CSRF 防御</span>
+              <span class="kp-brief">攻击原理、Token 机制、SameSite、双重验证</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+          <a class="kp-item" href="sec-https.html">
+            <span class="kp-num">35</span>
+            <span class="kp-info">
+              <span class="kp-title">HTTPS 与安全</span>
+              <span class="kp-brief">TLS 握手、证书体系、混合内容、HSTS</span>
+            </span>
+            <span class="kp-arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

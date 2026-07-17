@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Babel 与编译 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="eng-babel">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>前端工程化</span><span class="sep">/</span><span>Babel 与编译</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">工程化</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">Babel 与编译</h1>
+        <p class="page-subtitle">Babel 让你能用最新的 JavaScript 语法编写代码，同时兼容所有浏览器——理解 AST、编译流程和 polyfill 策略，是深入前端工程化的必修课。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>Babel</strong>是一个 JavaScript 编译器（transpiler），将 ES6+ 代码转换为向后兼容的 ES5 代码。它由三个主要阶段组成：<strong>解析（Parse）</strong>→ <strong>转换（Transform）</strong>→ <strong>生成（Generate）</strong>。</p>
+        <p><strong>AST（抽象语法树）</strong>是 Babel 工作的基础。源代码先被解析为 AST，然后通过插件遍历和修改 AST，最后将修改后的 AST 生成新代码。</p>
+        <p>Babel 只做<strong>语法转换</strong>（如箭头函数→function），不做<strong>API polyfill</strong>（如 Promise、Array.includes 需要额外引入）。polyfill 策略经历了 runtime → polyfill → preset-env 的演进。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 Babel 编译流程</h3>
+        <pre><code class="code-label">text">源代码 → [Parse] → AST → [Transform] → 新 AST → [Generate] → 目标代码
+
+Parse 阶段：
+  @babel/parser 将源代码解析为 AST
+  词法分析（Tokenizer）→ 语法分析（Parser）
+
+Transform 阶段：
+  @babel/traverse 遍历 AST 节点
+  插件注册的 visitor 函数修改/替换/删除节点
+
+Generate 阶段：
+  @babel/generator 将 AST 转回代码字符串
+  同时生成 source map</code></pre>
+
+        <h3 class="subsection-title">2.2 Babel 核心包</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>包名</th><th>作用</th></tr></thead>
+            <tbody>
+              <tr><td><code>@babel/core</code></td><td>核心编译流程（parse/transform/generate）</td></tr>
+              <tr><td><code>@babel/cli</code></td><td>命令行工具</td></tr>
+              <tr><td><code>@babel/parser</code></td><td>将代码解析为 AST</td></tr>
+              <tr><td><code>@babel/traverse</code></td><td>遍历和操作 AST</td></tr>
+              <tr><td><code>@babel/generator</code></td><td>将 AST 生成代码</td></tr>
+              <tr><td><code>@babel/types</code></td><td>AST 节点类型的判断和创建工具</td></tr>
+              <tr><td><code>@babel/template</code></td><td>AST 模板，快速生成 AST 节点</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 预设（Preset）</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>预设</th><th>说明</th><th>推荐度</th></tr></thead>
+            <tbody>
+              <tr><td><code>@babel/preset-env</code></td><td>根据目标环境自动确定需要的插件</td><td>⭐⭐⭐ 必用</td></tr>
+              <tr><td><code>@babel/preset-react</code></td><td>JSX 转换</td><td>React 项目必用</td></tr>
+              <tr><td><code>@babel/preset-typescript</code></td><td>TypeScript 转换（去除类型）</td><td>TS 项目必用</td></tr>
+              <tr><td><code>@babel/preset-flow</code></td><td>Flow 类型去除</td><td>Flow 项目使用</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 Polyfill 策略演进</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>方案</th><th>配置</th><th>优点</th><th>缺点</th></tr></thead>
+            <tbody>
+              <tr><td>@babel/polyfill（已废弃）</td><td>全局引入</td><td>简单</td><td>全量引入体积大、污染全局</td></tr>
+              <tr><td>useBuiltIns: 'entry'</td><td>入口文件 import polyfill</td><td>按目标环境引入</td><td>仍可能引入不需要的</td></tr>
+              <tr><td>useBuiltIns: 'usage'</td><td>自动按需引入</td><td>最小化引入</td><td>实例方法可能遗漏</td></tr>
+              <tr><td>@babel/runtime</td><td>辅助函数抽取</td><td>减少重复代码</td><td>不包含 polyfill</td></tr>
+              <tr><td>core-js@3 + usage</td><td>推荐方案</td><td>按需 + 完整 polyfill</td><td>配置稍复杂</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.5 AST 节点类型示例</h3>
+        <pre><code class="code-label">JavaScript</code>// 源代码
+const add = (a, b) => a + b;
+
+// 简化的 AST 结构
+{
+  type: 'VariableDeclaration',
+  declarations: [{
+    type: 'VariableDeclarator',
+    id: { type: 'Identifier', name: 'add' },
+    init: {
+      type: 'ArrowFunctionExpression',
+      params: [
+        { type: 'Identifier', name: 'a' },
+        { type: 'Identifier', name: 'b' },
+      ],
+      body: {
+        type: 'BinaryExpression',
+        operator: '+',
+        left: { type: 'Identifier', name: 'a' },
+        right: { type: 'Identifier', name: 'b' },
+      }
+    }
+  }],
+  kind: 'const'
+}</code></pre>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：推荐 Babel 配置</h3>
+        <pre><code class="code-label">JavaScript</code>// babel.config.js（推荐项目级配置）
+module.exports = {
+  presets: [
+    [
+      '@babel/preset-env',
+      {
+        // 目标浏览器
+        targets: {
+          browsers: ['> 1%', 'last 2 versions', 'not dead'],
+          // 或使用 browserslist 配置
+        },
+        // 按需引入 polyfill
+        useBuiltIns: 'usage',
+        // 指定 corejs 版本
+        corejs: { version: 3, proposals: true },
+        // 不输出模块转换（交给打包器处理）
+        modules: false,
+      },
+    ],
+    '@babel/preset-react', // React 项目
+    '@babel/preset-typescript', // TS 项目
+  ],
+  plugins: [
+    // 装饰器支持
+    ['@babel/plugin-proposal-decorators', { legacy: true }],
+    ['@babel/plugin-proposal-class-properties', { loose: true }],
+    // runtime 辅助函数抽取（库项目推荐）
+    ['@babel/plugin-transform-runtime', {
+      corejs: 3,    // 使用 runtime 方式的 polyfill
+      helpers: true, // 抽取辅助函数
+      regenerator: true,
+    }],
+  ],
+};</code></pre>
+
+        <h3 class="subsection-title">示例二：编写自定义 Babel 插件</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 自定义插件：自动在 console.log 中添加文件名和行号
+ * 转换前：console.log('hello')
+ * 转换后：console.log('[app.js:3]', 'hello')
+ */
+module.exports = function autoLogPlugin(babel) {
+  const { types: t } = babel;
+
+  return {
+    name: 'auto-log-plugin',
+    visitor: {
+      // 访问所有 CallExpression 节点
+      CallExpression(path, state) {
+        const callee = path.node.callee;
+
+        // 判断是否是 console.log
+        if (
+          t.isMemberExpression(callee) &&
+          t.isIdentifier(callee.object, { name: 'console' }) &&
+          t.isIdentifier(callee.property, { name: 'log' })
+        ) {
+          // 获取文件名和行号
+          const filename = state.filename || 'unknown';
+          const line = path.node.loc?.start?.line || 0;
+          const shortName = filename.split('/').pop();
+
+          // 创建前缀参数：`[filename:line]`
+          const prefix = t.stringLiteral(`[${shortName}:${line}]`);
+
+          // 将前缀插入参数列表最前面
+          path.node.arguments.unshift(prefix);
+        }
+      },
+    },
+  };
+};</code></pre>
+
+        <h3 class="subsection-title">示例三：AST 实操——理解代码转换</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 使用 @babel/parser + @babel/traverse + @babel/generator
+ * 手动实现箭头函数转换
+ */
+const parser = require('@babel/parser');
+const traverse = require('@babel/traverse').default;
+const generate = require('@babel/generator').default;
+const t = require('@babel/types');
+
+const code = `const add = (a, b) => a + b;`;
+
+// 1. 解析为 AST
+const ast = parser.parse(code);
+
+// 2. 遍历并转换
+traverse(ast, {
+  // 访问箭头函数节点
+  ArrowFunctionExpression(path) {
+    // 转换为普通函数表达式
+    const func = t.functionExpression(
+      null,                    // 函数名（匿名）
+      path.node.params,        // 参数
+      t.blockStatement([       // 函数体
+        t.returnStatement(path.node.body)
+      ])
+    );
+    path.replaceWith(func);
+  },
+});
+
+// 3. 生成代码
+const output = generate(ast);
+console.log(output.code);
+// 输出: const add = function (a, b) { return a + b; };</code></pre>
+
+        <h3 class="subsection-title">示例四：库项目的 Babel 配置</h3>
+        <pre><code class="code-label">JavaScript</code>// 库项目推荐使用 @babel/plugin-transform-runtime
+// 避免在每个编译文件中重复注入辅助函数和 polyfill
+
+// babel.config.js
+module.exports = {
+  presets: [
+    ['@babel/preset-env', {
+      targets: { node: '14' }, // 库的最低支持版本
+      modules: false,          // 保留 ESM 语法，支持 tree-shaking
+    }],
+  ],
+  plugins: [
+    ['@babel/plugin-transform-runtime', {
+      corejs: 3,      // 使用不污染全局的方式提供 polyfill
+      helpers: true,   // 辅助函数从 runtime 包引用，不内联
+      regenerator: true,
+    }],
+  ],
+};
+
+// 运行时依赖（不是 devDependencies！）
+// npm install @babel/runtime-corejs3
+
+// 对比：
+// 不用 runtime: 每个文件都内联 _classCallCheck, _defineProperty 等 → 包体积大
+// 用 runtime: 从 @babel/runtime-corejs3 统一引用 → 包体积小，不污染全局</code></pre>
+
+        <h3 class="subsection-title">示例五：Babel 与 TypeScript 的配合</h3>
+        <pre><code class="code-label">JavaScript</code>// Babel 处理 TS：只去除类型，不做类型检查
+// 类型检查交给 tsc --noEmit 或 fork-ts-checker-webpack-plugin
+
+// babel.config.js
+module.exports = {
+  presets: [
+    ['@babel/preset-env', { useBuiltIns: 'usage', corejs: 3 }],
+    ['@babel/preset-typescript', {
+      // 优化：只处理使用的 JSX
+      isTSX: true,
+      allExtensions: true,
+    }],
+  ],
+};
+
+// tsconfig.json — 只用于类型检查，不用于编译
+{
+  "compilerOptions": {
+    "target": "ESNext",       // Babel 负责降级，tsc 不需要
+    "module": "ESNext",       // 保留 ESM
+    "moduleResolution": "node",
+    "noEmit": true,            // 不输出文件
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
+
+// 优势：Babel 编译速度快（不做类型检查）
+// 比纯 tsc 编译快 5-10 倍，适合大型项目</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Babel 能做类型检查吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>不能。Babel 只做语法转换（去除类型注解），不做类型检查。类型检查需要 TypeScript 编译器（tsc --noEmit）或 IDE 的 TS 语言服务。这是 Babel 处理 TS 的局限——但换来的是更快的编译速度。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">useBuiltIns: 'usage' 会遗漏 polyfill 吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>会。usage 模式只能检测直接调用的 API，无法检测：① 通过原型链调用的实例方法（如 [].includes()）；② 第三方库内部使用的 API。解决方案：如果使用第三方库，考虑用 'entry' 模式或手动补充需要的 polyfill。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">@babel/polyfill 为什么被废弃？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>@babel/polyfill 内部引用了 core-js@2 和 regenerator-runtime，全量引入导致包体积过大。Babel 7.4+ 推荐直接安装 core-js@3 和 regenerator-runtime，配合 preset-env 的 useBuiltIns 按需引入。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 库项目不要使用 useBuiltIns</div>
+          <p>useBuiltIns 会全局注入 polyfill，可能污染使用方的全局环境。库项目应使用 @babel/plugin-transform-runtime + @babel/runtime-corejs3，以不污染全局的方式提供 polyfill。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ preset-env 的 modules 选项</div>
+          <p>使用 Webpack/Vite 时，应设 <code>modules: false</code>，保留 ESM 语法以支持 tree-shaking。设为 'commonjs' 会提前转换为 CJS，打包工具无法 tree-shake。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://babel.docschina.org/" target="_blank">Babel 中文文档</a></li>
+          <li><a href="https://astexplorer.net/" target="_blank">AST Explorer</a> — 在线 AST 可视化工具</li>
+          <li><a href="https://github.com/jamiebuilds/babel-handbook" target="_blank">Babel 插件手册</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>Babel 的编译流程是什么？</div>
+          <div class="iq-hint">三阶段：① Parse（解析）：@babel/parser 将源代码解析为 AST；② Transform（转换）：@babel/traverse 遍历 AST，插件注册的 visitor 函数修改节点；③ Generate（生成）：@babel/generator 将修改后的 AST 生成目标代码和 source map。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>Babel 和 TypeScript 编译器有什么区别？</div>
+          <div class="iq-hint">Babel：只做语法转换，不做类型检查，速度快。TypeScript 编译器：类型检查 + 语法转换 + 类型声明生成，速度慢但功能完整。大型项目推荐 Babel 编译 + tsc 类型检查的分工模式。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>什么是 AST？它有什么用？</div>
+          <div class="iq-hint">AST 是源代码的抽象语法树表示，描述代码结构的树形数据。用途：① 代码转换（Babel、PostCSS）；② 代码分析（ESLint、TypeScript）；③ 代码格式化（Prettier）；④ 代码压缩（Terser）；⑤ IDE 功能（高亮、补全、重构）。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

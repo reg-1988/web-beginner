@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flexbox 布局 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="css-flexbox">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>HTML5 & CSS3</span><span class="sep">/</span><span>Flexbox 布局</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-css">CSS</span><span class="tag tag-basic">初级</span></div>
+        <h1 class="page-title">Flexbox 布局</h1>
+        <p class="page-subtitle">Flexbox 是 CSS 一维布局的利器——用最少的代码实现最灵活的对齐、分配与排列，是日常开发中使用频率最高的布局方案。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>Flexbox（弹性盒子布局）</strong>是 CSS3 引入的一种一维布局模型，旨在提供更高效的方式来排列、对齐和分配容器内项目之间的空间，即使项目的大小未知或动态变化。与传统的 float 和 position 布局相比，Flexbox 能以极少的代码实现复杂的对齐和分配效果。</p>
+        <p>Flexbox 的核心思想是<strong>弹性</strong>：容器可以根据可用空间自动调整子项的大小和位置。开发者不需要计算具体的像素值，只需声明"我希望这些项目如何排列和分配空间"，浏览器会自动完成计算。这解决了传统布局中许多令人头疼的问题：垂直居中、等高列、剩余空间分配等。</p>
+        <p>Flexbox 是<strong>一维布局</strong>——它一次只处理一个方向（行或列）上的排列。如果你需要同时在行和列两个维度上进行控制，应该使用 Grid 布局。但在实际开发中，Flexbox 的使用频率远高于 Grid，因为大多数布局需求（导航栏、工具栏、卡片列表、表单行）本质上是一维的。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 Flex 容器属性</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>属性</th><th>说明</th><th>关键值</th><th>默认值</th></tr></thead>
+            <tbody>
+              <tr><td><code>display</code></td><td>定义 flex 容器</td><td>flex / inline-flex</td><td>—</td></tr>
+              <tr><td><code>flex-direction</code></td><td>主轴方向</td><td>row / row-reverse / column / column-reverse</td><td>row</td></tr>
+              <tr><td><code>flex-wrap</code></td><td>是否换行</td><td>nowrap / wrap / wrap-reverse</td><td>nowrap</td></tr>
+              <tr><td><code>justify-content</code></td><td>主轴对齐</td><td>flex-start / flex-end / center / space-between / space-around / space-evenly</td><td>flex-start</td></tr>
+              <tr><td><code>align-items</code></td><td>交叉轴对齐</td><td>stretch / flex-start / flex-end / center / baseline</td><td>stretch</td></tr>
+              <tr><td><code>align-content</code></td><td>多行对齐</td><td>同 justify-content + stretch</td><td>stretch</td></tr>
+              <tr><td><code>gap</code></td><td>项目间距</td><td>&lt;length&gt;</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 Flex 项目属性</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>属性</th><th>说明</th><th>关键值</th><th>默认值</th></tr></thead>
+            <tbody>
+              <tr><td><code>flex-grow</code></td><td>放大比例</td><td>&lt;number&gt;</td><td>0</td></tr>
+              <tr><td><code>flex-shrink</code></td><td>缩小比例</td><td>&lt;number&gt;</td><td>1</td></tr>
+              <tr><td><code>flex-basis</code></td><td>初始大小</td><td>auto / &lt;length&gt;</td><td>auto</td></tr>
+              <tr><td><code>flex</code></td><td>以上三者简写</td><td>none / auto / &lt;grow&gt; &lt;shrink&gt; &lt;basis&gt;</td><td>0 1 auto</td></tr>
+              <tr><td><code>align-self</code></td><td>单个项目交叉轴对齐</td><td>同 align-items + auto</td><td>auto</td></tr>
+              <tr><td><code>order</code></td><td>排列顺序</td><td>&lt;integer&gt;</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 主轴与交叉轴</h3>
+        <p>Flex 布局的核心概念是两条轴：<strong>主轴（main axis）</strong>是 flex-direction 定义的方向，项目沿主轴排列；<strong>交叉轴（cross axis）</strong>与主轴垂直。当 flex-direction: row 时，主轴是水平的，交叉轴是垂直的；当 flex-direction: column 时则相反。justify-content 控制主轴对齐，align-items 控制交叉轴对齐——记住这个对应关系是掌握 Flexbox 的关键。</p>
+
+        <h3 class="subsection-title">2.4 flex-grow / shrink / basis 深入</h3>
+        <p><code>flex-grow</code> 定义项目在剩余空间中的放大比例。如果所有项目 flex-grow 为 1，则平分剩余空间；如果某项为 2，则它分得的空间是其他项的两倍。<code>flex-shrink</code> 定义空间不足时的缩小比例，默认为 1（等比缩小），设为 0 则不缩小。<code>flex-basis</code> 定义项目在分配多余空间之前的初始大小，auto 表示由项目自身宽高决定。</p>
+
+        <div class="callout callout-tip">
+          <div class="callout-title">💡 flex 简写最佳实践</div>
+          <p>推荐使用 <code>flex</code> 简写而非单独设置三个属性。常见简写：<code>flex: 1</code> 等价于 <code>flex: 1 1 0%</code>（弹性填充）；<code>flex: auto</code> 等价于 <code>flex: 1 1 auto</code>（基于内容弹性）；<code>flex: none</code> 等价于 <code>flex: 0 0 auto</code>（固定大小不弹性）。最常用的是 <code>flex: 1</code>。</p>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：水平垂直居中</h3>
+        <pre><code class="code-label">CSS</code>/* === 最简单的居中方案 === */
+.center {
+  display: flex;
+  justify-content: center;  /* 主轴居中 */
+  align-items: center;      /* 交叉轴居中 */
+  height: 100vh;
+}
+
+/* 简写版 */
+.center-compact {
+  display: flex;
+  place-items: center;     /* align-items + justify-items */
+  place-content: center;   /* align-content + justify-content */
+  height: 100vh;
+}
+
+/* 行内 flex 居中 */
+.inline-center {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}</code></pre>
+
+        <h3 class="subsection-title">示例二：导航栏布局</h3>
+        <pre><code class="code-label">CSS</code>/* === 顶部导航栏：logo左/导航中/操作右 === */
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.navbar .logo {
+  flex-shrink: 0;  /* logo 不缩小 */
+  margin-right: 32px;
+}
+
+.navbar .nav-links {
+  flex: 1;  /* 占据剩余空间，把右侧推到最右 */
+  display: flex;
+  gap: 24px;
+}
+
+.navbar .actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* === 侧边栏导航：垂直排列 === */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+}
+
+.sidebar-nav a {
+  display: flex;       /* 每个 nav item 也是 flex */
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #64748b;
+}
+
+.sidebar-nav a.active {
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+}</code></pre>
+
+        <h3 class="subsection-title">示例三：卡片列表</h3>
+        <pre><code class="code-label">CSS</code>/* === 卡片列表：自动换行 + 等间距 === */
+.card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.card {
+  /* 固定宽度 + 允许弹性增长填满 */
+  flex: 0 0 calc((100% - 40px) / 3);  /* 3列，2个gap共40px */
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* 响应式：2列 */
+@media (max-width: 900px) {
+  .card {
+    flex: 0 0 calc((100% - 20px) / 2);
+  }
+}
+
+/* 响应式：1列 */
+@media (max-width: 600px) {
+  .card {
+    flex: 0 0 100%;
+  }
+}
+
+/* === 卡片内部布局 === */
+.card-body {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.card-body .title {
+  /* 标题不缩小 */
+  flex-shrink: 0;
+}
+
+.card-body .desc {
+  /* 描述区域弹性填充 */
+  flex: 1;
+  color: #64748b;
+}
+
+.card-body .actions {
+  /* 底部操作区固定 */
+  flex-shrink: 0;
+  margin-top: 16px;
+}</code></pre>
+
+        <h3 class="subsection-title">示例四：圣杯布局</h3>
+        <pre><code class="code-label">CSS</code>/* === 圣杯布局：header + (sidebar + main + aside) + footer === */
+.holy-grail {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.holy-grail .header {
+  flex-shrink: 0;
+  height: 64px;
+}
+
+.holy-grail .content {
+  flex: 1;               /* 占据剩余高度 */
+  display: flex;          /* 内部再 flex 水平排列 */
+}
+
+.holy-grail .sidebar {
+  flex: 0 0 240px;       /* 固定宽度 */
+  order: -1;             /* 排到最左 */
+}
+
+.holy-grail .main {
+  flex: 1;               /* 占据中间剩余空间 */
+}
+
+.holy-grail .aside {
+  flex: 0 0 200px;       /* 固定宽度 */
+}
+
+.holy-grail .footer {
+  flex-shrink: 0;
+  height: 48px;
+}
+
+/* 移动端：单列 */
+@media (max-width: 768px) {
+  .holy-grail .content {
+    flex-direction: column;
+  }
+  .holy-grail .sidebar,
+  .holy-grail .aside {
+    flex: 0 0 auto;
+  }
+}</code></pre>
+
+        <h3 class="subsection-title">示例五：表单布局</h3>
+        <pre><code class="code-label">CSS</code>/* === 表单行：label + input + 提示 === */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.form-row label {
+  flex: 0 0 100px;       /* 固定标签宽度 */
+  text-align: right;
+  font-weight: 600;
+}
+
+.form-row input {
+  flex: 1;                /* 输入框弹性填充 */
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.form-row .hint {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* === 内联按钮组 === */
+.btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-group .btn {
+  flex: 1;  /* 按钮等宽 */
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* === 输入框 + 按钮 === */
+.input-group {
+  display: flex;
+}
+
+.input-group input {
+  flex: 1;
+  border: 1px solid #e2e8f0;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  padding: 8px 12px;
+}
+
+.input-group button {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+}</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">flex: 1 和 flex: auto 有什么区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer">
+            <p><code>flex: 1</code> 等价于 <code>flex: 1 1 0%</code>，flex-basis 为 0%，意味着项目忽略自身内容大小，完全按 grow 比例分配空间。<code>flex: auto</code> 等价于 <code>flex: 1 1 auto</code>，flex-basis 为 auto，项目先按内容大小分配空间，剩余空间再按 grow 比例分配。结果：flex: 1 的项目等大（不管内容多少），flex: auto 的项目大小取决于内容。</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">为什么 flex 容器内的文本溢出不显示省略号？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer">
+            <p>Flex 项目的最小宽度默认由内容决定（min-width: auto），不会缩小到内容以下。文本溢出省略号需要项目宽度受限才能触发。解决方案：给 flex 项目设置 <code>min-width: 0</code>（允许缩小到 0）或 <code>overflow: hidden</code>，同时配合 <code>text-overflow: ellipsis</code> 和 <code>white-space: nowrap</code>。</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">flex-basis 和 width 有什么区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer">
+            <p>在 flex 容器中，flex-basis 优先于 width。如果同时设置了 flex-basis 和 width，flex-basis 生效。flex-basis: auto 时才回退到 width。关键区别：flex-basis 是"在分配剩余空间之前"的初始大小，width 是绝对大小；flex-basis 可以被 flex-grow 和 flex-shrink 影响，而 width 不参与弹性计算。</p>
+          </div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 常见坑：flex 项目 min-width: auto</div>
+          <p>Flex 项目的默认 min-width 是 auto（而非 0），这意味着项目不会缩小到内容以下。当内容是长文本或宽图片时，项目会撑破容器。解决方案：在需要缩小的项目上显式设置 <code>min-width: 0</code>。同理，flex-direction: column 时设 <code>min-height: 0</code>。</p>
+        </div>
+
+        <div class="callout callout-tip">
+          <div class="callout-title">💡 用 gap 替代 margin 控制间距</div>
+          <p>传统做法用 margin 来控制 flex 项目间距，但需要处理最后一个项目的 margin。gap 属性只在项目之间添加间距，首尾不留空白，更符合直觉。gap 同时适用于 flex 和 grid 容器。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/" target="_blank">CSS-Tricks - A Complete Guide to Flexbox</a></li>
+          <li><a href="https://flexboxfroggy.com/" target="_blank">Flexbox Froggy</a> — 互动式学习游戏</li>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_flexible_box_layout" target="_blank">MDN - CSS Flexbox</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>flex: 1 代表什么？flex: 0 1 auto 和 flex: 1 1 0% 有什么区别？</div>
+          <div class="iq-hint">flex: 1 是 flex: 1 1 0% 的简写，表示项目可放大(shrink=1)、可缩小(shrink=1)、初始大小为 0%。flex: 0 1 auto 表示不放大、可缩小、初始大小由内容决定。核心区别在 flex-basis：0% 使所有项目忽略内容大小，完全按 grow 比例等分空间；auto 使项目先按内容分配，剩余空间再按比例分配。</div>
+        </div>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>如何用 Flexbox 实现水平垂直居中？</div>
+          <div class="iq-hint">父容器 display: flex + justify-content: center + align-items: center。justify-content 控制主轴对齐，align-items 控制交叉轴对齐，两者同时 center 即可。这是最简洁可靠的居中方案，替代了传统负 margin、transform 等技巧。</div>
+        </div>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>Flexbox 和 Grid 布局分别适合什么场景？</div>
+          <div class="iq-hint">Flexbox 是一维布局，适合单行或单列的项目排列（导航栏、工具栏、卡片列表、表单行、居中）。Grid 是二维布局，适合同时控制行和列的复杂布局（页面骨架、仪表盘、图库网格）。最佳实践：Grid 搭页面骨架，Flexbox 处理组件内部排列，两者配合使用。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

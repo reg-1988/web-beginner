@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>浏览器存储 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="browser-storage">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>浏览器与网络</span><span class="sep">/</span><span>浏览器存储</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">浏览器</span><span class="tag tag-basic">初级</span></div>
+        <h1 class="page-title">浏览器存储</h1>
+        <p class="page-subtitle">从 Cookie 到 IndexedDB，浏览器提供了多种存储方案——理解每种方案的特性与适用场景，才能做出正确的技术选型。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p>浏览器存储是前端在客户端持久化数据的机制。主流方案包括：<strong>Cookie</strong>、<strong>localStorage</strong>、<strong>sessionStorage</strong>、<strong>IndexedDB</strong> 和 <strong>Cache API</strong>。</p>
+        <p>选择存储方案的核心考量维度：容量、生命周期、数据格式、API 便捷性、是否随请求发送、是否支持跨标签页、是否支持异步操作。</p>
+        <p>Cookie 最初设计用于会话管理，不是存储方案，但因为历史原因也被用于存数据。localStorage/sessionStorage 是 HTML5 引入的键值对存储。IndexedDB 是大型结构化数据存储。Cache API 用于 Service Worker 的网络请求缓存。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 五种存储方案对比</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>特性</th><th>Cookie</th><th>localStorage</th><th>sessionStorage</th><th>IndexedDB</th><th>Cache API</th></tr></thead>
+            <tbody>
+              <tr><td>容量</td><td>4KB</td><td>5-10MB</td><td>5-10MB</td><td>数百MB+</td><td>数百MB+</td></tr>
+              <tr><td>生命周期</td><td>可设过期时间</td><td>永久</td><td>标签页关闭</td><td>永久</td><td>永久</td></tr>
+              <tr><td>随请求发送</td><td>是</td><td>否</td><td>否</td><td>否</td><td>否</td></tr>
+              <tr><td>API</td><td>document.cookie</td><td>同步</td><td>同步</td><td>异步</td><td>异步(Promise)</td></tr>
+              <tr><td>数据格式</td><td>字符串</td><td>字符串</td><td>字符串</td><td>结构化数据</td><td>Response 对象</td></tr>
+              <tr><td>跨标签页</td><td>共享</td><td>共享</td><td>不共享</td><td>共享</td><td>共享</td></tr>
+              <tr><td>主线程阻塞</td><td>否</td><td>是(大文件)</td><td>是(大文件)</td><td>否</td><td>否</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 Cookie 详解</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>属性</th><th>说明</th><th>安全建议</th></tr></thead>
+            <tbody>
+              <tr><td><code>Value</code></td><td>Cookie 值</td><td>不要存敏感信息</td></tr>
+              <tr><td><code>Domain</code></td><td>作用域名</td><td>精确设置，避免过宽</td></tr>
+              <tr><td><code>Path</code></td><td>作用路径</td><td>精确设置</td></tr>
+              <tr><td><code>Expires/Max-Age</code></td><td>过期时间</td><td>设置合理时长</td></tr>
+              <tr><td><code>HttpOnly</code></td><td>JS 不可访问</td><td>必须设置（防 XSS）</td></tr>
+              <tr><td><code>Secure</code></td><td>仅 HTTPS 传输</td><td>生产环境必须设置</td></tr>
+              <tr><td><code>SameSite</code></td><td>跨站发送策略</td><td>Lax 或 Strict（防 CSRF）</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 IndexedDB 核心</h3>
+        <p>IndexedDB 是浏览器内置的 NoSQL 数据库，支持事务、索引、游标、范围查询。数据以对象仓库（Object Store）组织，类似数据库的表。</p>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>概念</th><th>类比 SQL</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>Database</td><td>Database</td><td>一个域可创建多个数据库</td></tr>
+              <tr><td>Object Store</td><td>Table</td><td>存储同类对象的仓库</td></tr>
+              <tr><td>Index</td><td>Index</td><td>加速查找的索引</td></tr>
+              <tr><td>Key Path</td><td>Primary Key</td><td>对象的主键路径</td></tr>
+              <tr><td>Transaction</td><td>Transaction</td><td>原子操作，全部成功或全部失败</td></tr>
+              <tr><td>Cursor</td><td>SELECT 遍历</td><td>逐条遍历结果集</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 Storage 事件</h3>
+        <p>当 localStorage 在一个标签页中被修改时，其他同源标签页会触发 <code>storage</code> 事件。这可以实现简单的跨标签页通信。</p>
+        <pre><code class="code-label">JavaScript</code>// 标签页 A：修改 localStorage
+localStorage.setItem('message', JSON.stringify({ type: 'update', data: 'hello' }));
+
+// 标签页 B：监听变化
+window.addEventListener('storage', (e) => {
+  console.log(e.key, e.oldValue, e.newValue);
+});</code></pre>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：Cookie 操作工具</h3>
+        <pre><code class="code-label">JavaScript</code>const CookieUtil = {
+  /**
+   * 设置 Cookie
+   */
+  set(name, value, options = {}) {
+    let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
+    
+    if (options.maxAge) cookie += `; max-age=${options.maxAge}`;
+    if (options.path) cookie += `; path=${options.path}`;
+    if (options.domain) cookie += `; domain=${options.domain}`;
+    if (options.secure) cookie += '; secure';
+    if (options.httpOnly) cookie += '; httpOnly';
+    if (options.sameSite) cookie += `; samesite=${options.sameSite}`;
+    
+    document.cookie = cookie;
+  },
+  
+  get(name) {
+    const cookies = document.cookie.split('; ');
+    for (const cookie of cookies) {
+      const [key, val] = cookie.split('=');
+      if (decodeURIComponent(key) === name) {
+        return decodeURIComponent(val);
+      }
+    }
+    return null;
+  },
+  
+  remove(name, options = {}) {
+    this.set(name, '', { ...options, maxAge: -1 });
+  }
+};
+
+// 使用
+CookieUtil.set('token', 'abc123', {
+  maxAge: 86400 * 7, // 7天
+  path: '/',
+  secure: true,
+  sameSite: 'Lax'
+});</code></pre>
+
+        <h3 class="subsection-title">示例二：localStorage 封装（带过期时间）</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 增强的 localStorage：支持过期时间和 JSON 序列化
+ */
+const Storage = {
+  set(key, value, ttl = null) {
+    const item = {
+      value,
+      timestamp: Date.now(),
+      ttl, // 过期时间（毫秒），null 表示永不过期
+    };
+    localStorage.setItem(key, JSON.stringify(item));
+  },
+
+  get(key, defaultValue = null) {
+    const raw = localStorage.getItem(key);
+    if (!raw) return defaultValue;
+
+    try {
+      const item = JSON.parse(raw);
+      // 检查是否过期
+      if (item.ttl && Date.now() - item.timestamp > item.ttl) {
+        localStorage.removeItem(key);
+        return defaultValue;
+      }
+      return item.value;
+    } catch {
+      return defaultValue;
+    }
+  },
+
+  remove(key) {
+    localStorage.removeItem(key);
+  },
+
+  clear() {
+    localStorage.clear();
+  }
+};
+
+// 使用
+Storage.set('user', { name: 'Alice' }, 3600000); // 1小时过期
+const user = Storage.get('user'); // { name: 'Alice' }
+// 1小时后
+Storage.get('user'); // null（已过期，自动清理）</code></pre>
+
+        <h3 class="subsection-title">示例三：IndexedDB 封装</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * IndexedDB 简易封装
+ */
+class DB {
+  constructor(dbName, version, stores) {
+    this.dbName = dbName;
+    this.version = version;
+    this.stores = stores;
+    this.db = null;
+  }
+
+  async open() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, this.version);
+      
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        for (const { name, keyPath, indexes = [] } of this.stores) {
+          if (!db.objectStoreNames.contains(name)) {
+            const store = db.createObjectStore(name, { keyPath });
+            for (const { name: idxName, keyPath: idxKey, options } of indexes) {
+              store.createIndex(idxName, idxKey, options);
+            }
+          }
+        }
+      };
+      
+      request.onsuccess = (e) => {
+        this.db = e.target.result;
+        resolve(this.db);
+      };
+      request.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  async add(storeName, data) {
+    const tx = this.db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    return new Promise((resolve, reject) => {
+      const request = store.add(data);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getAll(storeName) {
+    const tx = this.db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getByIndex(storeName, indexName, value) {
+    const tx = this.db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const index = store.index(indexName);
+    return new Promise((resolve, reject) => {
+      const request = index.getAll(value);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+}
+
+// 使用
+const db = new DB('MyApp', 1, [{
+  name: 'users',
+  keyPath: 'id',
+  indexes: [
+    { name: 'nameIndex', keyPath: 'name', options: { unique: false } },
+    { name: 'emailIndex', keyPath: 'email', options: { unique: true } },
+  ]
+}]);
+await db.open();
+await db.add('users', { id: 1, name: 'Alice', email: 'a@test.com' });
+const users = await db.getAll('users');</code></pre>
+
+        <h3 class="subsection-title">示例四：跨标签页同步状态</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 使用 BroadcastChannel + localStorage 实现跨标签页状态同步
+ * BroadcastChannel 是同源页面间通信的现代 API
+ */
+class TabSync {
+  constructor(channelName) {
+    // BroadcastChannel（现代方案）
+    this.channel = new BroadcastChannel(channelName);
+    this.channel.onmessage = (e) => {
+      this.onMessage?.(e.data);
+    };
+
+    // localStorage 事件作为降级方案
+    window.addEventListener('storage', (e) => {
+      if (e.key === channelName && e.newValue) {
+        try {
+          this.onMessage?.(JSON.parse(e.newValue));
+        } catch {}
+      }
+    });
+  }
+
+  send(data) {
+    this.channel.postMessage(data);
+    // 降级：同时写入 localStorage 触发其他标签页的 storage 事件
+    localStorage.setItem(this.channel.name, JSON.stringify({
+      ...data,
+      _tabId: Math.random() // 确保值变化
+    }));
+  }
+
+  onMessage = null; // 由外部设置
+}
+
+// 使用：登录状态同步
+const sync = new TabSync('auth');
+sync.onMessage = (data) => {
+  if (data.type === 'logout') {
+    location.reload(); // 另一标签页登出，当前页刷新
+  }
+  if (data.type === 'login') {
+    location.reload(); // 另一标签页登录，当前页刷新
+  }
+};
+
+// 登出时通知其他标签页
+function logout() {
+  clearAuth();
+  sync.send({ type: 'logout' });
+}</code></pre>
+
+        <h3 class="subsection-title">示例五：离线数据缓存方案</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 网络优先 + 离线降级的数据获取策略
+ * 在线时从网络获取并更新缓存，离线时从 IndexedDB 读取
+ */
+async function fetchWithOfflineCache(url, storeName, db) {
+  try {
+    // 尝试网络请求
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const data = await response.json();
+    
+    // 成功后更新 IndexedDB 缓存
+    if (db) {
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      await new Promise((resolve, reject) => {
+        const request = store.put({ url, data, timestamp: Date.now() });
+        request.onsuccess = resolve;
+        request.onerror = () => reject(request.error);
+      });
+    }
+    
+    return { data, fromCache: false };
+  } catch (error) {
+    // 网络失败，从 IndexedDB 读取
+    if (db) {
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const cached = await new Promise((resolve) => {
+        const request = store.get(url);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+      });
+      
+      if (cached) {
+        console.warn('使用离线缓存:', url);
+        return { data: cached.data, fromCache: true, age: Date.now() - cached.timestamp };
+      }
+    }
+    
+    throw new Error('网络不可用且无缓存数据');
+  }
+}</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">localStorage 存满了怎么办？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>localStorage 超出配额（通常 5MB）会抛出 QuotaExceededError。解决方案：① try/catch 包裹写入操作；② 使用前检查剩余空间（navigator.storage.estimate()）；③ 实现LRU淘汰策略；④ 大数据用 IndexedDB。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">sessionStorage 在标签页复制时会怎样？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>通过链接打开的新标签页，部分浏览器（Chrome）会复制原标签页的 sessionStorage；但直接新开标签页不会。注意：这与 Cookie 的行为不同，Cookie 是同源共享的。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">为什么不要用 localStorage 存敏感数据？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>① localStorage 可被任何同源 JS 读取，XSS 攻击可直接窃取；② 无法设置 HttpOnly（不同于 Cookie）；③ 数据持久存储，关闭浏览器不会清除；④ 开发者工具可直接查看。Token 建议存 HttpOnly Cookie 或内存中。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 localStorage 同步 API 阻塞主线程</div>
+          <p>localStorage 的 getItem/setItem 是同步操作。当存储数据较大时（接近 5MB），读写操作会阻塞主线程导致卡顿。大数据量务必使用 IndexedDB 的异步 API。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ 隐私模式下存储受限</div>
+          <p>浏览器隐私模式（无痕模式）下，localStorage 可用但关闭窗口后数据清除。部分浏览器对存储配额有更严格的限制。IndexedDB 在隐私模式下的行为也可能不同。务必做好异常处理。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Storage_API" target="_blank">MDN - Web Storage API</a></li>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/IndexedDB_API" target="_blank">MDN - IndexedDB API</a></li>
+          <li><a href="https://web.dev/articles/storage-for-the-web" target="_blank">web.dev - Web 存储</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>Cookie、localStorage、sessionStorage 的区别？</div>
+          <div class="iq-hint">Cookie：4KB、随请求发送、可设过期时间、HttpOnly/Secure 等。localStorage：5-10MB、不随请求发送、永久存储、同源共享。sessionStorage：5-10MB、不随请求发送、标签页关闭清除、不共享。Cookie 用于认证，localStorage 用于持久数据，sessionStorage 用于临时会话数据。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>如何实现跨标签页通信？</div>
+          <div class="iq-hint">① BroadcastChannel（推荐，现代 API）；② localStorage + storage 事件（兼容性好）；③ SharedWorker（共享 Worker）；④ Service Worker + postMessage；⑤ window.postMessage + window.open 引用。最常用方案 1 和 2。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>什么时候用 IndexedDB？</div>
+          <div class="iq-hint">当数据量超过 localStorage 限制（5MB），或需要结构化查询（索引、范围查询），或需要存储二进制数据（Blob），或需要异步非阻塞操作时。典型场景：离线应用数据、草稿自动保存、大量结构化数据缓存。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

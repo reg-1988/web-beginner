@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>H5 性能优化 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="mobile-performance">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>移动端H5</span><span class="sep">/</span><span>H5 性能优化</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">移动端</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">H5 性能优化</h1>
+        <p class="page-subtitle">移动端 H5 面临网络慢、内存少、CPU 弱的挑战——首屏优化、懒加载、虚拟列表和骨架屏是核心优化手段。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p>移动端 H5 性能优化的核心目标：<strong>首屏快速呈现</strong>（1~2 秒内可见内容）和<strong>交互流畅</strong>（60fps 不卡顿）。移动端相比桌面端有更多限制：网络延迟高、CPU/GPU 性能弱、内存有限、电量敏感。</p>
+        <p>优化分为两大方向：<strong>加载优化</strong>（减少资源体积、加快传输速度、优化加载策略）和<strong>运行时优化</strong>（减少重排重绘、优化 JS 执行、内存管理）。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 性能指标</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>指标</th><th>含义</th><th>目标值</th></tr></thead>
+            <tbody>
+              <tr><td>FCP</td><td>首次内容绘制</td><td>&lt; 1.8s</td></tr>
+              <tr><td>LCP</td><td>最大内容绘制</td><td>&lt; 2.5s</td></tr>
+              <tr><td>FID</td><td>首次输入延迟</td><td>&lt; 100ms</td></tr>
+              <tr><td>CLS</td><td>累积布局偏移</td><td>&lt; 0.1</td></tr>
+              <tr><td>TTFB</td><td>首字节时间</td><td>&lt; 800ms</td></tr>
+              <tr><td>TTI</td><td>可交互时间</td><td>&lt; 3.8s</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 优化策略总览</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>方向</th><th>策略</th><th>效果</th></tr></thead>
+            <tbody>
+              <tr><td rowspan="3">加载优化</td><td>代码分割 + 懒加载</td><td>减小首屏体积</td></tr>
+              <tr><td>资源压缩 + CDN</td><td>减小传输体积</td></tr>
+              <tr><td>预加载 + 预渲染</td><td>提前获取资源</td></tr>
+              <tr><td rowspan="3">运行时优化</td><td>虚拟列表</td><td>减少 DOM 节点</td></tr>
+              <tr><td>防抖/节流</td><td>减少高频操作</td></tr>
+              <tr><td>Web Worker</td><td>避免阻塞主线程</td></tr>
+              <tr><td rowspan="2">感知优化</td><td>骨架屏</td><td>降低等待焦虑</td></tr>
+              <tr><td>渐进式加载</td><td>先低清后高清</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：虚拟列表实现</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 虚拟列表：只渲染可见区域的 DOM 节点
+ * 适合渲染成千上万条数据
+ */
+class VirtualList {
+  constructor(container, options = {}) {
+    this.container = container;
+    this.itemHeight = options.itemHeight || 50;
+    this.buffer = options.buffer || 5; // 缓冲区
+    this.data = [];
+    this.visibleItems = [];
+    
+    this.scrollEl = document.createElement('div');
+    this.scrollEl.style.overflow = 'auto';
+    this.scrollEl.style.height = '100%';
+    
+    this.contentEl = document.createElement('div');
+    this.contentEl.style.position = 'relative';
+    
+    this.scrollEl.appendChild(this.contentEl);
+    container.appendChild(this.scrollEl);
+    
+    this.scrollEl.addEventListener('scroll', () => this.render());
+  }
+
+  setData(data) {
+    this.data = data;
+    this.contentEl.style.height = `${data.length * this.itemHeight}px`;
+    this.render();
+  }
+
+  render() {
+    const scrollTop = this.scrollEl.scrollTop;
+    const viewHeight = this.scrollEl.clientHeight;
+    
+    const startIdx = Math.max(0, Math.floor(scrollTop / this.itemHeight) - this.buffer);
+    const endIdx = Math.min(
+      this.data.length,
+      Math.ceil((scrollTop + viewHeight) / this.itemHeight) + this.buffer
+    );
+    
+    // 清空并重新渲染可见区域
+    this.contentEl.innerHTML = '';
+    for (let i = startIdx; i < endIdx; i++) {
+      const item = this.createItem(this.data[i], i);
+      item.style.position = 'absolute';
+      item.style.top = `${i * this.itemHeight}px`;
+      item.style.height = `${this.itemHeight}px`;
+      item.style.width = '100%';
+      this.contentEl.appendChild(item);
+    }
+  }
+
+  createItem(data, index) {
+    const el = document.createElement('div');
+    el.textContent = `Item ${index}: ${data.name}`;
+    el.style.padding = '0 16px';
+    el.style.lineHeight = `${this.itemHeight}px`;
+    el.style.boxSizing = 'border-box';
+    el.style.borderBottom = '1px solid #eee';
+    return el;
+  }
+}</code></pre>
+
+        <h3 class="subsection-title">示例二：图片懒加载</h3>
+        <pre><code class="code-label">JavaScript</code>// IntersectionObserver 方案（推荐）
+function setupLazyImages() {
+  const images = document.querySelectorAll('img[data-src]');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.removeAttribute('data-src');
+        observer.unobserve(img);
+      }
+    });
+  }, {
+    rootMargin: '200px', // 提前 200px 开始加载
+  });
+
+  images.forEach(img => observer.observe(img));
+}
+
+// CSS 渐进式加载
+// img { filter: blur(20px); transition: filter 0.3s; }
+// img.loaded { filter: none; }
+// img.onload = () => img.classList.add('loaded');
+
+// 原生 lazy 属性（最简单）
+// &lt;img src="image.jpg" loading="lazy" alt="..."&gt;</code></pre>
+
+        <h3 class="subsection-title">示例三：骨架屏方案</h3>
+        <pre><code class="code-label">HTML</code>&lt;!-- 骨架屏：在数据加载前展示页面结构 --&gt;
+&lt;div class="skeleton" id="skeleton"&gt;
+  &lt;div class="skeleton-header"&gt;
+    &lt;div class="skeleton-avatar"&gt;&lt;/div&gt;
+    &lt;div class="skeleton-lines"&gt;
+      &lt;div class="skeleton-line w60"&gt;&lt;/div&gt;
+      &lt;div class="skeleton-line w40"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="skeleton-card"&gt;
+    &lt;div class="skeleton-line w100"&gt;&lt;/div&gt;
+    &lt;div class="skeleton-line w80"&gt;&lt;/div&gt;
+    &lt;div class="skeleton-line w60"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
+.skeleton-line {
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  margin-bottom: 12px;
+}
+.skeleton-line.w100 { width: 100%; }
+.skeleton-line.w60  { width: 60%; }
+.skeleton-line.w40  { width: 40%; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+&lt;/style&gt;
+
+&lt;script&gt;
+// 数据加载完成后替换骨架屏
+async function loadData() {
+  const data = await fetchData();
+  document.getElementById('skeleton').style.display = 'none';
+  renderContent(data);
+}
+&lt;/script&gt;</code></pre>
+
+        <h3 class="subsection-title">示例四：首屏优化清单</h3>
+        <pre><code class="code-label">text">1. 关键渲染路径优化
+   ✓ CSS 内联关键样式（&lt;style&gt;）
+   ✓ JS 使用 defer/async
+   ✓ 预加载关键资源 &lt;link rel="preload"&gt;
+   ✓ 预连接 &lt;link rel="preconnect"&gt;
+
+2. 资源优化
+   ✓ 代码分割 + 路由懒加载
+   ✓ Tree-shaking 移除死代码
+   ✓ 图片 WebP/AVIF 格式 + 压缩
+   ✓ Gzip/Brotli 压缩
+
+3. 缓存策略
+   ✓ 带 hash 的静态资源强缓存 1 年
+   ✓ HTML 不缓存（或短缓存）
+   ✓ API 使用协商缓存
+
+4. 预加载策略
+   ✓ &lt;link rel="prefetch"&gt; 预加载下一页
+   ✓ &lt;link rel="dns-prefetch"&gt; DNS 预解析
+   ✓ &lt;link rel="preload"&gt; 关键资源预加载
+
+5. 服务端优化
+   ✓ SSR/SSG 首屏直出
+   ✓ CDN 就近分发
+   ✓ HTTP/2 多路复用</code></pre>
+
+        <h3 class="subsection-title">示例五：性能监控 SDK</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 简易前端性能监控
+ */
+class PerfMonitor {
+  constructor(reportUrl) {
+    this.reportUrl = reportUrl;
+    this.metrics = {};
+  }
+
+  init() {
+    this.observePaint();
+    this.observeLCP();
+    this.observeFID();
+    this.observeCLS();
+    this.observeResourceTiming();
+    window.addEventListener('load', () => this.report());
+  }
+
+  observePaint() {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        this.metrics[entry.name] = entry.startTime;
+      }
+    });
+    observer.observe({ type: 'paint', buffered: true });
+  }
+
+  observeLCP() {
+    const observer = new PerformanceObserver((list) => {
+      const entries = list.getEntries();
+      this.metrics.LCP = entries[entries.length - 1].renderTime;
+    });
+    observer.observe({ type: 'largest-contentful-paint', buffered: true });
+  }
+
+  observeFID() {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        this.metrics.FID = entry.processingStart - entry.startTime;
+      }
+    });
+    observer.observe({ type: 'first-input', buffered: true });
+  }
+
+  observeCLS() {
+    let clsValue = 0;
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (!entry.hadRecentInput) clsValue += entry.value;
+      }
+      this.metrics.CLS = clsValue;
+    });
+    observer.observe({ type: 'layout-shift', buffered: true });
+  }
+
+  observeResourceTiming() {
+    const observer = new PerformanceObserver((list) => {
+      const resources = list.getEntries()
+        .filter(e => e.initiatorType === 'xmlhttprequest')
+        .map(e => ({
+          url: e.name,
+          duration: e.duration,
+          size: e.transferSize,
+        }));
+      this.metrics.slowApis = resources.filter(r => r.duration > 3000);
+    });
+    observer.observe({ type: 'resource', buffered: true });
+  }
+
+  report() {
+    setTimeout(() => {
+      navigator.sendBeacon(this.reportUrl, JSON.stringify({
+        url: location.href,
+        metrics: this.metrics,
+        timestamp: Date.now(),
+      }));
+    }, 3000); // 延迟上报，确保指标完整
+  }
+}</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">虚拟列表在什么场景下使用？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>当列表项超过 100 条且每项 DOM 复杂度高时考虑使用。判断标准：如果列表渲染导致页面卡顿（掉帧），就需要虚拟列表。少于 50 条的简单列表不需要，直接渲染性能更好。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">骨架屏和 Loading 圈哪个好？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>骨架屏更好。研究表明骨架屏降低了用户感知的等待时间。原因：骨架屏提供了页面结构预期，让用户知道内容即将出现；Loading 圈只传达"正在等待"，没有结构预期。推荐骨架屏 + 渐进式加载的组合。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 移动端慎用大图和动画</div>
+          <p>移动端 GPU 性能弱，大图（> 1MB）和高频动画容易导致内存溢出和卡顿。图片务必压缩、使用 WebP、设置合理的 max-width。动画只用 transform/opacity，避免触发重排。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://web.dev/articles/vitals" target="_blank">web.dev - Core Web Vitals</a></li>
+          <li><a href="https://web.dev/articles/performance" target="_blank">web.dev - 性能</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>如何优化首屏加载速度？</div>
+          <div class="iq-hint">① 路由懒加载/代码分割；② 关键 CSS 内联；③ JS defer/async；④ 图片懒加载+WebP；⑤ 预加载关键资源；⑥ CDN + Gzip；⑦ 服务端渲染（SSR）；⑧ 骨架屏降低感知等待；⑨ HTTP/2 多路复用；⑩ 合理缓存策略。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>虚拟列表的原理？</div>
+          <div class="iq-hint">只渲染可视区域内的 DOM 节点。计算 scrollTop 和容器高度确定可见范围，动态创建/销毁 DOM。用绝对定位或 transform 控制位置。内容区域设置总高度撑起滚动条。滚动时重新计算可见范围并更新 DOM。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

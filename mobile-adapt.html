@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>移动端适配 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="mobile-adapt">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>移动端H5</span><span class="sep">/</span><span>移动端适配</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">移动端</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">移动端适配</h1>
+        <p class="page-subtitle">移动端屏幕碎片化严重——理解 viewport、rem/vw 方案和 Safe Area，才能让页面在所有设备上正确展示。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>移动端适配</strong>的目标是让同一套代码在不同尺寸、不同 DPR（设备像素比）的移动设备上都能正确显示。核心挑战：屏幕宽度从 320px 到 428px 不等，还有刘海屏、底部安全区域等特殊布局需求。</p>
+        <p><strong>viewport</strong>是移动端适配的基础。移动浏览器有两个视口：<strong>布局视口（Layout Viewport）</strong>和<strong>视觉视口（Visual Viewport）</strong>。正确设置 viewport meta 标签是适配的第一步。</p>
+        <p>主流适配方案：<strong>rem + 动态 html font-size</strong>（传统方案）和 <strong>vw/vh</strong>（现代方案）。两者可以配合使用。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 Viewport Meta 标签</h3>
+        <pre><code class="code-label">HTML</code>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"&gt;
+
+// 各属性含义：
+// width=device-width：布局视口 = 设备宽度（不设置则默认 980px）
+// initial-scale=1.0：初始缩放比例
+// maximum-scale=1.0：最大缩放比例
+// user-scalable=no：禁止缩放（可访问性不好，谨慎使用）</code></pre>
+
+        <h3 class="subsection-title">2.2 物理像素、CSS 像素与 DPR</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>概念</th><th>说明</th><th>关系</th></tr></thead>
+            <tbody>
+              <tr><td>物理像素</td><td>设备屏幕的实际像素点</td><td>硬件决定</td></tr>
+              <tr><td>CSS 像素</td><td>CSS 中使用的逻辑像素</td><td>1 CSS px = DPR × 物理像素</td></tr>
+              <tr><td>DPR</td><td>设备像素比 = 物理像素 / CSS 像素</td><td>window.devicePixelRatio</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>常见设备 DPR：iPhone 6/7/8 = 2x，iPhone 12/13/14 Pro = 3x，Android 主流 = 2x~3.5x。1px 边框问题：CSS 写 1px，在 2x 屏幕上实际渲染 2 个物理像素，看起来比设计稿粗。</p>
+
+        <h3 class="subsection-title">2.3 rem 适配方案</h3>
+        <p>rem（root em）是相对于 html 元素 font-size 的单位。核心思路：JS 根据屏幕宽度动态设置 html 的 font-size，CSS 中使用 rem 单位。</p>
+        <pre><code class="code-label">JavaScript</code>// 以 375px 设计稿为基准，1rem = 100px
+function setRem() {
+  const designWidth = 375;
+  const baseFontSize = 100;
+  const scale = document.documentElement.clientWidth / designWidth;
+  document.documentElement.style.fontSize = baseFontSize * scale + 'px';
+}
+setRem();
+window.addEventListener('resize', setRem);
+
+// 设计稿上 200px 的元素 → 200/100 = 2rem
+// 在 375px 屏幕上：2rem = 200px
+// 在 750px 屏幕上：2rem = 400px（等比放大）</code></pre>
+
+        <h3 class="subsection-title">2.4 vw 适配方案</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>单位</th><th>含义</th><th>示例（375px 屏幕）</th></tr></thead>
+            <tbody>
+              <tr><td><code>1vw</code></td><td>视口宽度的 1%</td><td>3.75px</td></tr>
+              <tr><td><code>1vh</code></td><td>视口高度的 1%</td><td>≈ 8.12px</td></tr>
+              <tr><td><code>1vmin</code></td><td>min(vw, vh)</td><td>3.75px</td></tr>
+              <tr><td><code>1vmax</code></td><td>max(vw, vh)</td><td>8.12px</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>设计稿上 200px 的元素 → 200/375 × 100 = 53.33vw。可用 postcss-px-to-viewport 自动转换。</p>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：现代适配方案（推荐）</h3>
+        <pre><code class="code-label">JavaScript</code>// lib-flexible 替代方案：使用 vw + rem 混合
+// html font-size 用 vw 设置，元素用 rem
+// 这样不需要 JS 计算，纯 CSS 适配
+
+// CSS 中：
+// html { font-size: calc(100vw / 3.75); }
+// 375px 设计稿：1rem = 100px
+// 元素 200px → 2rem
+
+// PostCSS 配置自动转换（postcss.config.js）
+// module.exports = {
+//   plugins: {
+//     'postcss-px-to-viewport-8-plugin': {
+//       viewportWidth: 375,      // 设计稿宽度
+//       unitPrecision: 5,        // 小数精度
+//       viewportUnit: 'vw',      // 转换单位
+//       selectorBlackList: [],   // 忽略的选择器
+//       minPixelValue: 1,        // 小于 1px 不转换
+//       mediaQuery: false,       // 不转换媒体查询中的 px
+//       exclude: [/node_modules/],
+//     }
+//   }
+// };</code></pre>
+
+        <h3 class="subsection-title">示例二：1px 边框问题</h3>
+        <pre><code class="code-label">CSS</code>/* 方案一：transform 缩放（推荐） */
+.border-1px {
+  position: relative;
+}
+.border-1px::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 1px;
+  background: #e5e5e5;
+  transform: scaleY(0.5);
+  transform-origin: 0 0;
+}
+/* 3x 屏幕用 scaleY(0.33) */
+@media (-webkit-min-device-pixel-ratio: 3) {
+  .border-1px::after {
+    transform: scaleY(0.33);
+  }
+}
+
+/* 方案二：box-shadow */
+.border-1px-shadow {
+  box-shadow: 0 0.5px 0 0 #e5e5e5;
+}
+
+/* 方案三：viewport 缩放（全局） */
+/* &lt;meta name="viewport" content="width=device-width, initial-scale=0.5"&gt; */
+/* 所有 CSS 按 2x 尺寸写，viewport 缩放到 0.5 */
+/* 不推荐，影响全局 */</code></pre>
+
+        <h3 class="subsection-title">示例三：Safe Area 适配</h3>
+        <pre><code class="code-label">CSS</code>/* 刘海屏安全区域适配 */
+/* env() 读取安全区域内边距 */
+.header {
+  padding-top: env(safe-area-inset-top); /* 顶部状态栏 */
+}
+.footer {
+  padding-bottom: env(safe-area-inset-bottom); /* 底部 Home 指示条 */
+}
+.sidebar-left {
+  padding-left: env(safe-area-inset-left); /* 横屏左侧 */
+}
+.sidebar-right {
+  padding-right: env(safe-area-inset-right); /* 横屏右侧 */
+}
+
+/* viewport meta 需要设置 viewport-fit=cover */
+/* &lt;meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"&gt; */
+
+/* 常用组合：固定底部栏适配 */
+.fixed-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  padding-bottom: constant(safe-area-inset-bottom); /* iOS 11.0 */
+  padding-bottom: env(safe-area-inset-bottom);       /* iOS 11.2+ */
+}
+
+/* 横屏适配 */
+@media (orientation: landscape) {
+  .sidebar { padding-left: env(safe-area-inset-left); }
+}</code></pre>
+
+        <h3 class="subsection-title">示例四：响应式布局</h3>
+        <pre><code class="code-label">CSS</code>/* 媒体查询断点（推荐） */
+/* 移动优先：从小屏到大屏 */
+
+/* 手机 (&lt;=640px) — 默认样式，无需媒体查询 */
+.container { padding: 16px; }
+.grid { display: grid; grid-template-columns: 1fr; }
+
+/* 平板 (641px~1024px) */
+@media (min-width: 641px) {
+  .container { padding: 24px; max-width: 960px; margin: 0 auto; }
+  .grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* 桌面 (&gt;=1024px) */
+@media (min-width: 1024px) {
+  .container { padding: 32px; max-width: 1200px; }
+  .grid { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* 容器查询（现代方案，更精确） */
+.card-container {
+  container-type: inline-size;
+}
+@container (min-width: 400px) {
+  .card { display: flex; gap: 16px; }
+}
+@container (max-width: 399px) {
+  .card { display: block; }
+}</code></pre>
+
+        <h3 class="subsection-title">示例五：图片适配</h3>
+        <pre><code class="code-label">HTML</code>&lt;!-- 响应式图片：不同屏幕加载不同尺寸 --&gt;
+&lt;img
+  src="image-400.jpg"
+  srcset="image-400.jpg 400w, image-800.jpg 800w, image-1200.jpg 1200w"
+  sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  alt="响应式图片"
+/&gt;
+
+&lt;!-- 不同 DPR 加载不同清晰度 --&gt;
+&lt;img
+  src="icon-1x.png"
+  srcset="icon-1x.png 1x, icon-2x.png 2x, icon-3x.png 3x"
+  alt="高清图标"
+/&gt;
+
+&lt;!-- Art Direction：不同屏幕显示不同裁剪 --&gt;
+&lt;picture&gt;
+  &lt;source media="(min-width: 1024px)" srcset="hero-desktop.jpg"&gt;
+  &lt;source media="(min-width: 641px)" srcset="hero-tablet.jpg"&gt;
+  &lt;img src="hero-mobile.jpg" alt="Hero"&gt;
+&lt;/picture&gt;</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">rem 和 vw 怎么选？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>vw 方案更现代，不需要 JS 计算，纯 CSS 即可。但 vw 在超大屏幕上会无限放大，需要 max-width 限制。rem 方案更灵活，可以通过 JS 控制缩放上限。推荐组合：html font-size 用 vw 设置，元素用 rem 单位，兼顾两者优点。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">iOS 弹性滚动怎么处理？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>iOS Safari 默认允许页面弹性滚动（bounce），可能导致固定定位元素随页面移动。解决方案：① overscroll-behavior: none 阻止弹性滚动；② 固定元素用 position: fixed；③ 滚动容器用 -webkit-overflow-scrolling: touch + overflow: auto。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 不要忘记 viewport-fit=cover</div>
+          <p>iOS 刘海屏适配的前提是 viewport meta 中设置 <code>viewport-fit=cover</code>，否则 env(safe-area-inset-*) 值为 0，安全区域适配不生效。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTML/Viewport_meta_tag" target="_blank">MDN - Viewport meta 标签</a></li>
+          <li><a href="https://web.dev/articles/responsive-web-design-basics" target="_blank">web.dev - 响应式设计</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>1px 边框问题怎么解决？</div>
+          <div class="iq-hint">CSS 写 1px，在高清屏上渲染为 2~3 物理像素。方案：① transform scaleY(0.5) 伪元素（推荐）；② box-shadow 模拟；③ viewport 整体缩放（不推荐）；④ border-image SVG；⑤ @media 查询 DPR。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>rem 适配方案的原理？</div>
+          <div class="iq-hint">rem 相对 html font-size。JS 根据屏幕宽度动态设置 html font-size：fontSize = clientWidth / designWidth × baseFontSize。CSS 中所有尺寸用 rem，自动按屏幕宽度等比缩放。设计稿 200px → 200/baseFontSize rem。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

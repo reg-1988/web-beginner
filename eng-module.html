@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模块化规范 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="eng-module">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>前端工程化</span><span class="sep">/</span><span>模块化规范</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">工程化</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">模块化规范</h1>
+        <p class="page-subtitle">从全局变量到 IIFE，从 CommonJS 到 ES Modules，模块化是前端工程化的起点——理解模块化的演进，才能理解现代前端工具链的设计。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>模块化</strong>是将复杂程序拆分为独立、可复用的模块的编程范式。每个模块拥有独立的作用域，对外暴露接口，对内隐藏实现细节。</p>
+        <p>模块化解决的核心问题：<strong>命名冲突</strong>（全局变量污染）、<strong>依赖管理</strong>（脚本加载顺序）、<strong>代码复用</strong>（跨项目共享）、<strong>可维护性</strong>（关注点分离）。</p>
+        <p>前端模块化经历了：全局函数 → 命名空间 → IIFE → CommonJS/AMD → UMD → ES Modules 的演进。目前 ESM 是官方标准，CommonJS 在 Node.js 中仍广泛使用。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 模块化规范对比</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>规范</th><th>加载方式</th><th>作用域</th><th>输出</th><th>运行环境</th></tr></thead>
+            <tbody>
+              <tr><td>CommonJS (CJS)</td><td>同步运行时加载</td><td>模块作用域</td><td>值的拷贝</td><td>Node.js</td></tr>
+              <tr><td>AMD</td><td>异步运行时加载</td><td>模块作用域</td><td>值的拷贝</td><td>浏览器（RequireJS）</td></tr>
+              <tr><td>ES Modules (ESM)</td><td>编译时静态分析</td><td>模块作用域</td><td>值的引用</td><td>浏览器 + Node.js</td></tr>
+              <tr><td>UMD</td><td>兼容多种环境</td><td>模块作用域</td><td>值的拷贝</td><td>通用</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 CommonJS 核心特性</h3>
+        <pre><code class="code-label">JavaScript</code>// 导出
+module.exports = { add, subtract };
+// 或
+exports.add = function(a, b) { return a + b; };
+// ⚠ 不能直接给 exports 赋值：exports = { add } 会断开引用
+
+// 导入
+const math = require('./math');
+const { add } = require('./math'); // 解构导入
+
+// 特性：
+// 1. require() 是同步的，首次加载时执行模块，之后返回缓存
+// 2. module.exports 输出的是值的拷贝
+// 3. 运行时加载，无法静态分析
+// 4. 循环依赖时返回已执行部分的快照</code></pre>
+
+        <h3 class="subsection-title">2.3 ES Modules 核心特性</h3>
+        <pre><code class="code-label">JavaScript</code>// 命名导出
+export const PI = 3.14;
+export function add(a, b) { return a + b; }
+
+// 默认导出
+export default class Calculator { /* ... */ }
+
+// 导入
+import Calculator, { PI, add } from './math.js';
+import * as math from './math.js';
+import('./math.js'); // 动态导入（返回 Promise）
+
+// 特性：
+// 1. import 是编译时静态分析，可在打包时 tree-shaking
+// 2. 导出的是值的引用（绑定），源模块修改会同步反映
+// 3. import 提升（类似 const 声明提升）
+// 4. 顶层 this 为 undefined，不是全局对象</code></pre>
+
+        <h3 class="subsection-title">2.4 CJS vs ESM 核心区别</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>特性</th><th>CommonJS</th><th>ES Modules</th></tr></thead>
+            <tbody>
+              <tr><td>加载时机</td><td>运行时</td><td>编译时</td></tr>
+              <tr><td>输出类型</td><td>值的拷贝</td><td>值的引用（绑定）</td></tr>
+              <tr><td>动态导入</td><td>require() 可用变量</td><td>import() 动态导入</td></tr>
+              <tr><td>Tree-shaking</td><td>不支持</td><td>支持（静态分析）</td></tr>
+              <tr><td>顶层 await</td><td>不支持</td><td>支持（ES2022）</td></tr>
+              <tr><td>循环引用</td><td>返回已执行部分快照</td><td>引用绑定，可能得到 TDZ</td></tr>
+              <tr><td>this</td><td>module.exports</td><td>undefined</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：ESM 模块组织</h3>
+        <pre><code class="code-label">JavaScript</code>// ====== math.js —— 工具模块 ======
+// 命名导出（推荐，便于 tree-shaking）
+export function add(a, b) { return a + b; }
+export function subtract(a, b) { return a - b; }
+export const PI = 3.14159;
+
+// 不推荐默认导出 + 命名导出混用
+// 建议一个模块要么全部命名导出，要么仅一个默认导出
+
+// ====== calculator.js ======
+import { add, subtract } from './math.js';
+
+export default class Calculator {
+  constructor() { this.result = 0; }
+  plus(n) { this.result = add(this.result, n); return this; }
+  minus(n) { this.result = subtract(this.result, n); return this; }
+  value() { return this.result; }
+}
+
+// ====== index.js —— 入口 ======
+export { add, subtract, PI } from './math.js'; // 重新导出
+export { default as Calculator } from './calculator.js';</code></pre>
+
+        <h3 class="subsection-title">示例二：动态导入实现按需加载</h3>
+        <pre><code class="code-label">JavaScript</code>// 路由级按需加载
+const routes = [
+  { path: '/', component: () => import('./pages/Home.vue') },
+  { path: '/about', component: () => import('./pages/About.vue') },
+  { path: '/admin', component: () => import('./pages/Admin.vue') },
+];
+
+// 条件加载
+async function loadEditor() {
+  if (mode === 'advanced') {
+    const { AdvancedEditor } = await import('./editors/AdvancedEditor.js');
+    return new AdvancedEditor();
+  }
+  const { SimpleEditor } = await import('./editors/SimpleEditor.js');
+  return new SimpleEditor();
+}
+
+// 交互触发加载（点击时才加载模块）
+button.addEventListener('click', async () => {
+  const { openDialog } = await import('./dialog.js');
+  openDialog({ title: '确认', content: '确定要删除吗？' });
+});</code></pre>
+
+        <h3 class="subsection-title">示例三：循环依赖的处理</h3>
+        <pre><code class="code-label">JavaScript</code>// ====== CJS 循环依赖 ======
+// a.js
+exports.loaded = false;
+const b = require('./b');
+exports.loaded = true;
+console.log('a.js: b.loaded =', b.loaded); // false（b 还没执行完）
+
+// b.js
+exports.loaded = false;
+const a = require('./a'); // 返回 a 当前的快照
+exports.loaded = true;
+console.log('b.js: a.loaded =', a.loaded); // false
+// a.js 和 b.js 都执行完后：
+// a.loaded = true, b.loaded = true（但快照中是 false）
+
+// ====== ESM 循环依赖 ======
+// a.mjs
+export let loaded = false;
+import { loaded as bLoaded } from './b.mjs';
+loaded = true;
+console.log('a.mjs: bLoaded =', bLoaded); // 取决于执行顺序
+
+// 最佳实践：避免循环依赖！
+// 解决方案：
+// 1. 提取共享逻辑到第三个模块
+// 2. 使用依赖注入
+// 3. 延迟导入（函数内部 import）</code></pre>
+
+        <h3 class="subsection-title">示例四：浏览器中使用 ESM</h3>
+        <pre><code class="code-label">HTML</code>&lt;!-- 浏览器原生 ESM --&gt;
+&lt;script type="module"&gt;
+  // 1. 默认严格模式
+  // 2. 顶层 this 为 undefined
+  // 3. 模块作用域（不会污染全局）
+  // 4. 同一模块只执行一次（单例）
+  import { add } from './math.js';
+  console.log(add(1, 2)); // 3
+&lt;/script&gt;
+
+&lt;!-- nomodule 降级方案 --&gt;
+&lt;script type="module" src="app.modern.js"&gt;&lt;/script&gt;
+&lt;script nomodule src="app.legacy.js"&gt;&lt;/script&gt;
+
+&lt;!-- importmap（ES2022）--&gt;
+&lt;script type="importmap"&gt;
+{
+  "imports": {
+    "lodash": "https://cdn.jsdelivr.net/npm/lodash@4/es/lodash.js",
+    "vue": "https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.js"
+  }
+}
+&lt;/script&gt;
+&lt;script type="module"&gt;
+  import { debounce } from 'lodash'; // 使用 importmap 映射
+&lt;/script&gt;</code></pre>
+
+        <h3 class="subsection-title">示例五：NPM 包的模块化发布</h3>
+        <pre><code class="code-label">JSON</code>// package.json 双模式发布
+{
+  "name": "my-lib",
+  "version": "1.0.0",
+  // ESM 入口（打包工具优先使用，支持 tree-shaking）
+  "module": "dist/my-lib.esm.js",
+  // CJS 入口（Node.js 默认使用）
+  "main": "dist/my-lib.cjs.js",
+  // 浏览器入口（UMD，支持 CDN script 标签）
+  "browser": "dist/my-lib.umd.js",
+  // 明确声明类型
+  "type": "module", // 所有 .js 文件视为 ESM
+  "exports": {
+    ".": {
+      "import": "./dist/my-lib.esm.js",
+      "require": "./dist/my-lib.cjs.js",
+      "default": "./dist/my-lib.umd.js"
+    },
+    "./utils": {
+      "import": "./dist/utils.esm.js",
+      "require": "./dist/utils.cjs.js"
+    }
+  },
+  // 声明副作用（帮助 tree-shaking）
+  "sideEffects": false
+}</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">require 和 import 可以混用吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>不建议。在 ESM 文件中使用 require() 会报错（ESM 不支持 require）。在 CJS 文件中使用 import 语法需要设置 "type": "module" 或使用 .mjs 后缀。打包工具（Webpack/Vite）可以处理互操作，但运行时原生环境混用容易出问题。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">ESM 的 "值的引用" 和 CJS 的 "值的拷贝" 具体区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>CJS：require() 返回的是 module.exports 的浅拷贝。源模块修改变量后，引用方拿到的仍是旧值。ESM：import 建立的是绑定（binding），源模块修改变量后，引用方能读到最新值（但 import 的绑定是只读的）。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Tree-shaking 是怎么工作的？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>Tree-shaking 依赖 ESM 的静态分析特性。打包工具在编译时扫描 import/export，标记哪些导出被使用，删除未使用的代码（dead code elimination）。CJS 的 require() 是运行时执行的，无法静态判断是否使用。需确保：使用 ESM 语法、package.json 设置 sideEffects、避免动态导入路径。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 不要在 CJS 中给 exports 赋值</div>
+          <p><code>exports = { a: 1 }</code> 会断开 exports 和 module.exports 的引用关系，导致导出失效。正确做法：<code>module.exports = { a: 1 }</code> 或 <code>exports.a = 1</code>。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ ESM 文件必须带后缀</div>
+          <p>浏览器中 ESM 的 import 路径必须是完整 URL 或相对路径带 .js 后缀。Node.js 中 CJS 的 require 可以省略后缀，但 ESM 的 import 不行（除非配置了 exports 字段）。推荐始终写明后缀。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Modules" target="_blank">MDN - JavaScript 模块</a></li>
+          <li><a href="https://zh.javascript.info/modules-intro" target="_blank">现代 JavaScript 教程 - 模块</a></li>
+          <li><a href="https://nodejs.org/api/esm.html" target="_blank">Node.js ESM 文档</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>CommonJS 和 ES Modules 有什么区别？</div>
+          <div class="iq-hint">① CJS 运行时加载，ESM 编译时静态分析；② CJS 输出值拷贝，ESM 输出值引用；③ CJS 的 require 同步，ESM 的 import 异步；④ ESM 支持 tree-shaking，CJS 不支持；⑤ ESM 顶层 this 为 undefined，CJS 为 module.exports；⑥ ESM 支持顶层 await。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>什么是 Tree-shaking？为什么 ESM 支持而 CJS 不支持？</div>
+          <div class="iq-hint">Tree-shaking 是删除未使用代码的优化。ESM 的 import/export 是静态声明，编译时可确定依赖关系，打包工具能安全删除未使用的导出。CJS 的 require() 是运行时执行，可能包含条件逻辑，无法静态判断哪些模块会被加载。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>如何实现模块的按需加载？</div>
+          <div class="iq-hint">ESM 的动态 import() 返回 Promise，可实现运行时按需加载。应用场景：路由懒加载、条件加载、交互触发加载。Webpack 将 import() 自动拆分为独立 chunk，Vite 也原生支持。配合 Suspense/Loading 状态提供良好用户体验。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

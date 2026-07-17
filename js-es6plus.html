@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ES6+ 新特性 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="js-es6plus">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>JavaScript 核心</span><span class="sep">/</span><span>ES6+ 新特性</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">JavaScript</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">ES6+ 新特性</h1>
+        <p class="page-subtitle">ES6（ECMAScript 2015）是 JavaScript 最重要的版本更新，之后的每年发布新标准（ES2016+）。这些特性从根本上改变了 JS 的编写方式，是现代前端开发的基础。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p>ES6+ 不是单一版本，而是从 ES2015 开始持续至今的语法和 API 增强。最重要的特性包括：<strong>解构赋值</strong>、<strong>展开/剩余运算符</strong>、<strong>模板字符串</strong>、<strong>箭头函数</strong>、<strong>Map/Set</strong>、<strong>Proxy/Reflect</strong>、<strong>迭代器与生成器</strong>等。</p>
+        <p>这些特性解决了 ES5 时代的痛点：变量提升、回调地狱、缺乏模块化、对象操作不便等。理解这些特性不仅是编码效率的问题，更是读懂现代代码库的前提。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 解构赋值</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>类型</th><th>语法</th><th>默认值</th><th>重命名</th></tr></thead>
+            <tbody>
+              <tr><td>数组解构</td><td><code>const [a, b] = [1, 2]</code></td><td><code>const [a = 0] = []</code></td><td>不适用</td></tr>
+              <tr><td>对象解构</td><td><code>const { name, age } = obj</code></td><td><code>const { x = 0 } = {}</code></td><td><code>const { name: n } = obj</code></td></tr>
+              <tr><td>嵌套解构</td><td><code>const { a: { b } } = obj</code></td><td>支持</td><td>支持</td></tr>
+              <tr><td>函数参数解构</td><td><code>function f({ x, y }) {}</code></td><td><code>function f({ x = 0 } = {}) {}</code></td><td>支持</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 展开与剩余运算符</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>运算符</th><th>用途</th><th>示例</th></tr></thead>
+            <tbody>
+              <tr><td><code>...</code> 展开</td><td>数组/对象展开</td><td><code>[...arr1, ...arr2]</code></td></tr>
+              <tr><td><code>...</code> 剩余</td><td>收集剩余参数</td><td><code>function f(first, ...rest) {}</code></td></tr>
+              <tr><td>对象展开</td><td>浅拷贝与合并</td><td><code>{ ...obj1, ...obj2 }</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 Map vs Object</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>特性</th><th>Map</th><th>Object</th></tr></thead>
+            <tbody>
+              <tr><td>键类型</td><td>任意值（含对象、函数）</td><td>仅字符串/Symbol</td></tr>
+              <tr><td>顺序</td><td>插入顺序</td><td>ES2015+ 大致有序</td></tr>
+              <tr><td>大小</td><td><code>map.size</code></td><td><code>Object.keys(obj).length</code></td></tr>
+              <tr><td>迭代</td><td>直接 for...of</td><td>需转换</td></tr>
+              <tr><td>性能</td><td>频繁增删更优</td><td>少量键值更优</td></tr>
+              <tr><td>默认键</td><td>无原型链</td><td>有 toString 等原型键</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 Proxy 与 Reflect</h3>
+        <p>Proxy 用于创建对象的代理，拦截并自定义基本操作（属性查找、赋值、枚举、函数调用等）。Reflect 提供与 Proxy 拦截器对应的方法，是操作对象的默认行为。</p>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Proxy 拦截器</th><th>触发时机</th><th>Reflect 方法</th></tr></thead>
+            <tbody>
+              <tr><td><code>get(target, key)</code></td><td>读取属性</td><td><code>Reflect.get()</code></td></tr>
+              <tr><td><code>set(target, key, value)</code></td><td>设置属性</td><td><code>Reflect.set()</code></td></tr>
+              <tr><td><code>has(target, key)</code></td><td><code>key in proxy</code></td><td><code>Reflect.has()</code></td></tr>
+              <tr><td><code>deleteProperty(target, key)</code></td><td><code>delete proxy[key]</code></td><td><code>Reflect.deleteProperty()</code></td></tr>
+              <tr><td><code>apply(target, thisArg, args)</code></td><td>函数调用</td><td><code>Reflect.apply()</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.5 迭代器与生成器</h3>
+        <p>迭代器（Iterator）是实现了 <code>[Symbol.iterator]()</code> 方法和 <code>next()</code> 方法的对象。生成器（Generator）是通过 <code>function*</code> 声明的函数，调用后返回迭代器，<code>yield</code> 暂停执行，<code>next()</code> 恢复执行。</p>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：解构赋值的高级用法</h3>
+        <pre><code class="code-label">JavaScript</code>// 交换变量
+let a = 1, b = 2;
+[a, b] = [b, a];
+
+// 函数返回多值
+function getMinMax(arr) {
+  return { min: Math.min(...arr), max: Math.max(...arr) };
+}
+const { min, max } = getMinMax([3, 1, 4, 1, 5]);
+
+// 跳过元素
+const [, second, , fourth] = [1, 2, 3, 4];
+
+// 函数参数解构 + 默认值
+function renderUser({ name, age = 18, role = 'user' } = {}) {
+  console.log(`${name}, ${age}, ${role}`);
+}
+renderUser({ name: 'Alice' }); // 'Alice, 18, user'
+renderUser();                   // 'undefined, 18, user'（空对象默认值）
+
+// 嵌套解构
+const response = {
+  data: { user: { name: 'Alice', address: { city: 'Beijing' } } }
+};
+const { data: { user: { name, address: { city } } } } = response;
+console.log(name, city); // 'Alice Beijing'</code></pre>
+
+        <h3 class="subsection-title">示例二：Map/Set 实用场景</h3>
+        <pre><code class="code-label">JavaScript</code>// Set：数组去重
+const unique = [...new Set([1, 2, 2, 3, 3])]; // [1, 2, 3]
+
+// Set：判断集合关系
+const requiredTags = new Set(['js', 'css', 'html']);
+const userTags = ['js', 'python'];
+const hasAllRequired = requiredTags.isSubsetOf?.(new Set(userTags)); // ES2024
+// 兼容写法
+const hasAll = [...requiredTags].every(t => userTags.includes(t)); // false
+
+// Map：缓存计算结果
+function createMemo() {
+  const cache = new Map();
+  return function(fn, ...args) {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key);
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  };
+}
+const memo = createMemo();
+const expensiveCalc = (n) => { console.log('计算中...'); return n * n; };
+memo(expensiveCalc, 5); // 计算中... → 25
+memo(expensiveCalc, 5); // 25（缓存命中）
+
+// Map：对象属性映射
+const userMap = new Map();
+userMap.set({ id: 1 }, 'Alice'); // 对象作为键
+userMap.set({ id: 2 }, 'Bob');</code></pre>
+
+        <h3 class="subsection-title">示例三：Proxy 实现响应式</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 简易响应式系统（类似 Vue 3 Reactivity 的核心思路）
+ */
+function reactive(target) {
+  return new Proxy(target, {
+    get(obj, key, receiver) {
+      // 依赖收集（简化版）
+      track(obj, key);
+      const result = Reflect.get(obj, key, receiver);
+      // 深层响应式：如果值是对象，递归代理
+      if (result !== null && typeof result === 'object') {
+        return reactive(result);
+      }
+      return result;
+    },
+    set(obj, key, value, receiver) {
+      const oldValue = Reflect.get(obj, key, receiver);
+      const result = Reflect.set(obj, key, value, receiver);
+      if (oldValue !== value) {
+        // 触发更新
+        trigger(obj, key);
+      }
+      return result;
+    }
+  });
+}
+
+// 简化的依赖管理
+const effectStack = [];
+function track(target, key) {
+  if (effectStack.length) {
+    const effect = effectStack[effectStack.length - 1];
+    // 记录 effect 依赖 target.key
+  }
+}
+function trigger(target, key) {
+  console.log(`属性 ${String(key)} 发生变化`);
+}
+
+// 使用
+const state = reactive({ count: 0, user: { name: 'Alice' } });
+state.count;      // 触发 track
+state.count = 1;  // 触发 trigger: "属性 count 发生变化"</code></pre>
+
+        <h3 class="subsection-title">示例四：生成器的实用场景</h3>
+        <pre><code class="code-label">JavaScript</code>// 1. 惰性序列：无限序列按需取值
+function* fibonacci() {
+  let a = 0, b = 1;
+  while (true) {
+    yield a;
+    [a, b] = [b, a + b];
+  }
+}
+const fib = fibonacci();
+console.log(fib.next().value); // 0
+console.log(fib.next().value); // 1
+console.log(fib.next().value); // 1
+console.log(fib.next().value); // 2
+
+// 取前 10 个
+const first10 = [...function*() {
+  const f = fibonacci();
+  for (let i = 0; i < 10; i++) yield f.next().value;
+}()];
+
+// 2. 状态机
+function* trafficLight() {
+  while (true) {
+    yield '🟢 绿灯 3s'; yield '🟡 黄灯 1s'; yield '🔴 红灯 3s';
+  }
+}
+const light = trafficLight();
+
+// 3. 用生成器实现 async/await 的原理（简化）
+function* fetchData() {
+  try {
+    const user = yield fetch('/api/user');
+    const posts = yield fetch(`/api/posts?userId=${user.id}`);
+    return { user, posts };
+  } catch (e) {
+    console.error(e);
+  }
+}
+// 执行器将 yield 的 Promise resolve 后传回 next()</code></pre>
+
+        <h3 class="subsection-title">示例五：常用 ES6+ 语法糖合集</h3>
+        <pre><code class="code-label">JavaScript</code>// 可选链 Optional Chaining (ES2020)
+const city = user?.address?.city ?? '未知';
+
+// 空值合并 Nullish Coalescing (ES2020)
+const name = user.name ?? '匿名'; // 仅 null/undefined 时用默认值
+// vs || ：0, '', false 都会使用默认值
+
+// 逻辑赋值 (ES2021)
+x &&= y;  // x && (x = y)
+x ||= y;  // x || (x = y)
+x ??= y;  // x ?? (x = y)
+
+// 数字分隔符 (ES2021)
+const budget = 1_000_000_000;
+
+// String methods (ES2022)
+'smile'.at(-1);       // 'e'
+'hello'.startsWith('he'); // true
+
+// Array methods (ES2022+)
+[1, 2, 3].at(-1);     // 3
+[1, 2, 3].findLast(x => x > 1); // 3
+
+// Object methods (ES2022)
+const obj = { a: 1 };
+Object.hasOwn(obj, 'a'); // true（比 hasOwnProperty 更安全）
+
+// 顶层 await (ES2022，仅 ES Module)
+// const config = await fetchConfig(); // 模块顶层直接 await</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">展开运算符是深拷贝还是浅拷贝？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>浅拷贝。<code>{ ...obj }</code> 和 <code>[...arr]</code> 只复制第一层。嵌套对象仍然是引用。深拷贝需用 structuredClone() 或 JSON.parse(JSON.stringify()) 或递归实现。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">?? 和 || 的区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p><code>??</code> 仅在 null/undefined 时使用右侧值；<code>||</code> 在所有 falsy 值（0、''、false、null、undefined、NaN）时使用右侧值。当 0 或 '' 是有效值时，必须用 ?? 而非 ||。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Map 和 WeakMap 的区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>WeakMap 的键必须是对象，且是弱引用——当键对象没有其他引用时，会被 GC 回收。WeakMap 不可迭代、没有 size、没有 clear()。适用场景：为对象关联数据而不阻止回收（如 DOM 元素关联数据、私有属性存储）。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 对象展开顺序与覆盖</div>
+          <p><code>{ ...defaults, ...userConfig }</code> 中，后面的属性覆盖前面的。但嵌套对象不会深度合并：<code>{ a: { x: 1 } }</code> 和 <code>{ a: { y: 2 } }</code> 合并后 <code>a</code> 是 <code>{ y: 2 }</code>，不是 <code>{ x: 1, y: 2 }</code>。需要深度合并使用自定义函数或 lodash.merge。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ Proxy 不能代理原始值</div>
+          <p>Proxy 只能代理对象。若要代理原始值（如数字、字符串），需用对象包装或使用 Vue 的 ref 方案：<code>const count = reactive({ value: 0 })</code>。Vue 3 的 ref 正是为此设计。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://es6.ruanyifeng.com/" target="_blank">ECMAScript 6 入门 - 阮一峰</a></li>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/New_in_JavaScript" target="_blank">MDN - JavaScript 版本新特性</a></li>
+          <li><a href="https://github.com/tc39/proposals" target="_blank">TC39 Proposals</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>展开运算符和 Object.assign 有什么区别？</div>
+          <div class="iq-hint">展开运算符 <code>{ ...a }</code> 和 <code>Object.assign({}, a)</code> 效果基本相同，都是浅拷贝。区别：① Object.assign 会触发 setter，展开不会；② Object.assign 可以修改目标对象（不传空对象时）；③ 展开运算符不能复制原型链属性。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>Proxy 和 Object.defineProperty 的区别？</div>
+          <div class="iq-hint">Proxy：代理整个对象，可以拦截属性访问/删除/枚举/函数调用等 13 种操作；可以检测新增属性；默认不代理嵌套对象。Object.defineProperty：只能劫持已有属性；无法检测新增/删除属性（Vue 2 需要 $set/$delete）；需要遍历属性逐个定义。Vue 3 用 Proxy 替代了 defineProperty。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>for...of 和 for...in 的区别？</div>
+          <div class="iq-hint">for...of 遍历可迭代对象的值（Array、Map、Set、String、Generator），不遍历原型链。for...in 遍历对象的可枚举属性键（含原型链），不适合数组（遍历的是索引字符串）。数组和 Map/Set 用 for...of，普通对象用 for...in 或 Object.keys()。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

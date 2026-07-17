@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue 3 组合式 API - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="vue3-composition">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>框架生态</span><span class="sep">/</span><span>Vue 3 组合式 API</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-vue">Vue</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">Vue 3 组合式 API</h1>
+        <p class="page-subtitle">Composition API 是 Vue 3 最重要的特性——它解决了 Options API 的逻辑分散问题，让代码按功能组织、可复用、可组合。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>组合式 API（Composition API）</strong>是一组 API 的总称，包括 <code>setup()</code>、<code>ref()</code>、<code>reactive()</code>、<code>computed()</code>、<code>watch()</code>、生命周期钩子等。它允许开发者按<strong>逻辑功能</strong>组织代码，而非按选项类型。</p>
+        <p>Options API 的问题：一个功能的代码分散在 data、methods、computed、watch 等多个选项中，组件越大越难维护。Composition API 让同一个功能的代码集中在同一个组合函数中。</p>
+        <p><strong>&lt;script setup&gt;</strong>是 Composition API 的编译时语法糖，更简洁、性能更好（无运行时开销），是 Vue 3 推荐的写法。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 Options API vs Composition API</h3>
+        <pre><code class="code-label">text">Options API（按选项类型组织）     Composition API（按逻辑功能组织）
+┌─────────────────────┐          ┌─────────────────────┐
+│ data() { ... }      │ ← 功能A  │ // 功能A：搜索       │
+│ computed: { ... }   │ ← 功能B  │ const keyword = ref()│
+│ methods: { ... }    │ ← 功能A  │ const results = comp()│
+│ watch: { ... }      │ ← 功能B  │ watch(keyword, ...)  │
+│ mounted() { ... }   │ ← 功能A  │                      │
+│                     │          │ // 功能B：分页        │
+│ 代码跳来跳去        │          │ const page = ref()   │
+│ 难以定位功能边界     │          │ const changePage = ..│
+└─────────────────────┘          └─────────────────────┘</code></pre>
+
+        <h3 class="subsection-title">2.2 核心 API 速查</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>API</th><th>用途</th><th>返回值</th></tr></thead>
+            <tbody>
+              <tr><td><code>ref(value)</code></td><td>创建响应式引用</td><td>{ value } 带 .value</td></tr>
+              <tr><td><code>reactive(obj)</code></td><td>创建响应式对象</td><td>Proxy 代理对象</td></tr>
+              <tr><td><code>computed(getter)</code></td><td>计算属性（缓存）</td><td>只读 ref</td></tr>
+              <tr><td><code>watch(source, cb)</code></td><td>侦听变化</td><td>停止函数</td></tr>
+              <tr><td><code>watchEffect(fn)</code></td><td>自动追踪依赖并执行</td><td>停止函数</td></tr>
+              <tr><td><code>toRefs(reactive)</code></td><td>解构不丢失响应式</td><td>{ key: Ref }</td></tr>
+              <tr><td><code>toRef(obj, key)</code></td><td>为某个属性创建 ref</td><td>Ref</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 watch vs watchEffect</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>特性</th><th>watch</th><th>watchEffect</th></tr></thead>
+            <tbody>
+              <tr><td>指定监听源</td><td>显式指定</td><td>自动追踪</td></tr>
+              <tr><td>获取旧值</td><td>能（callback 参数）</td><td>不能</td></tr>
+              <tr><td>懒执行</td><td>默认懒执行</td><td>立即执行一次</td></tr>
+              <tr><td>精确控制</td><td>高</td><td>低</td></tr>
+              <tr><td>适用场景</td><td>需要旧值、精确监听</td><td>副作用、自动追踪</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：组合函数（Composable）</h3>
+        <pre><code class="code-label">JavaScript</code>// composables/useFetch.js
+import { ref, shallowRef } from 'vue';
+
+/**
+ * 通用数据获取组合函数
+ */
+export function useFetch(url, options = {}) {
+  const data = shallowRef(null);
+  const error = ref(null);
+  const loading = ref(false);
+
+  async function execute() {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await fetch(url.value || url, options);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      data.value = await response.json();
+    } catch (err) {
+      error.value = err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  // 如果 url 是 ref，自动重新请求
+  if (typeof url === 'object' && url.value !== undefined) {
+    watch(url, execute, { immediate: true });
+  } else if (options.immediate !== false) {
+    execute();
+  }
+
+  return { data, error, loading, execute };
+}
+
+// 使用
+const { data: users, loading, error } = useFetch('/api/users');</code></pre>
+
+        <h3 class="subsection-title">示例二：表单验证组合函数</h3>
+        <pre><code class="code-label">JavaScript</code>// composables/useForm.js
+import { reactive, computed } from 'vue';
+
+export function useForm(initialValues, validators) {
+  const form = reactive({ ...initialValues });
+  const errors = reactive({});
+  const touched = reactive({});
+
+  // 验证单个字段
+  function validateField(field) {
+    const validator = validators[field];
+    if (!validator) return true;
+    const result = validator(form[field], form);
+    errors[field] = result === true ? '' : result;
+    return result === true;
+  }
+
+  // 验证所有字段
+  const isValid = computed(() => {
+    return Object.keys(validators).every(key => {
+      const result = validators[key](form[key], form);
+      return result === true;
+    });
+  });
+
+  // 标记为已触碰并验证
+  function touch(field) {
+    touched[field] = true;
+    validateField(field);
+  }
+
+  // 提交前验证全部
+  function validateAll() {
+    let allValid = true;
+    for (const field of Object.keys(validators)) {
+      touched[field] = true;
+      if (!validateField(field)) allValid = false;
+    }
+    return allValid;
+  }
+
+  function reset() {
+    Object.assign(form, initialValues);
+    Object.keys(errors).forEach(k => errors[k] = '');
+    Object.keys(touched).forEach(k => touched[k] = false);
+  }
+
+  return { form, errors, touched, isValid, touch, validateAll, reset };
+}
+
+// 使用
+const { form, errors, isValid, validateAll } = useForm(
+  { name: '', email: '', age: '' },
+  {
+    name: v => v.length >= 2 || '姓名至少2个字符',
+    email: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || '邮箱格式不正确',
+    age: v => (v >= 18 && v <= 120) || '年龄需在18-120之间',
+  }
+);</code></pre>
+
+        <h3 class="subsection-title">示例三：鼠标追踪组合函数</h3>
+        <pre><code class="code-label">JavaScript</code>// composables/useMouse.js
+import { ref, onMounted, onUnmounted } from 'vue';
+
+export function useMouse() {
+  const x = ref(0);
+  const y = ref(0);
+
+  function update(event) {
+    x.value = event.pageX;
+    y.value = event.pageY;
+  }
+
+  onMounted(() => window.addEventListener('mousemove', update));
+  onUnmounted(() => window.removeEventListener('mousemove', update));
+
+  return { x, y };
+}
+
+// composables/useWindowSize.js
+export function useWindowSize() {
+  const width = ref(window.innerWidth);
+  const height = ref(window.innerHeight);
+
+  function update() {
+    width.value = window.innerWidth;
+    height.value = window.innerHeight;
+  }
+
+  onMounted(() => window.addEventListener('resize', update));
+  onUnmounted(() => window.removeEventListener('resize', update));
+
+  return { width, height };
+}
+
+// 在组件中组合使用
+const { x, y } = useMouse();
+const { width, height } = useWindowSize();</code></pre>
+
+        <h3 class="subsection-title">示例四：provide/inject 跨层级通信</h3>
+        <pre><code class="code-label">Vue</code>&lt;!-- 祖先组件：提供数据 --&gt;
+&lt;script setup&gt;
+import { provide, ref, readonly } from 'vue';
+
+const theme = ref('dark');
+const user = ref(null);
+
+// 提供只读数据（防止子组件意外修改）
+provide('theme', readonly(theme));
+// 提供可修改数据（同时提供修改方法）
+provide('setUser', (newUser) => { user.value = newUser; });
+provide('user', readonly(user));
+
+// 或使用 Symbol 作为 key（推荐，避免命名冲突）
+export const ThemeKey = Symbol('theme');
+provide(ThemeKey, readonly(theme));
+&lt;/script&gt;
+
+&lt;!-- 后代组件：注入数据 --&gt;
+&lt;script setup&gt;
+import { inject } from 'vue';
+
+// 第二参数为默认值（未提供时使用）
+const theme = inject('theme', 'light');
+const user = inject('user');
+const setUser = inject('setUser');
+
+// 使用 Symbol key
+// const theme = inject(ThemeKey, 'light');
+&lt;/script&gt;</code></pre>
+
+        <h3 class="subsection-title">示例五：自定义指令</h3>
+        <pre><code class="code-label">JavaScript</code>// directives/vClickOutside.js
+export const vClickOutside = {
+  mounted(el, binding) {
+    el.__clickOutsideHandler = (event) => {
+      // 点击在元素外部时触发回调
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value(event);
+      }
+    };
+    document.addEventListener('click', el.__clickOutsideHandler);
+  },
+  unmounted(el) {
+    document.removeEventListener('click', el.__clickOutsideHandler);
+    delete el.__clickOutsideHandler;
+  },
+};
+
+// directives/vLazy.js — 图片懒加载
+export const vLazy = {
+  mounted(el, binding) {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        el.src = binding.value; // 进入视口时加载图片
+        observer.unobserve(el);
+      }
+    });
+    el.__observer = observer;
+    observer.observe(el);
+  },
+  unmounted(el) {
+    el.__observer?.disconnect();
+  },
+};
+
+// 使用
+// &lt;div v-click-outside="closeMenu"&gt;...&lt;/div&gt;
+// &lt;img v-lazy="imageUrl" /&gt;</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">watch 监听 reactive 对象的属性怎么写？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>直接 watch reactive 对象会深层监听所有属性。监听单个属性需用 getter：<code>watch(() => state.name, callback)</code>。监听多个属性：<code>watch([() => state.a, () => state.b], callback)</code>。监听 ref 直接 <code>watch(count, callback)</code>。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">组合函数如何清理副作用？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>在组合函数内部使用 onUnmounted 注册清理逻辑（移除事件监听器、取消定时器、中断请求等）。或使用 watchEffect 的 onCleanup：<code>watchEffect((onCleanup) => { const timer = setInterval(...); onCleanup(() => clearInterval(timer)); })</code>。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">组合函数能替代 Vuex/Pinia 吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>不能完全替代。组合函数适合组件级逻辑复用，但不提供全局状态管理的时间旅行调试、SSR 状态序列化、DevTools 集成等。简单项目可以用 provide/inject + 组合函数替代 Pinia，复杂项目仍推荐 Pinia。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 不要在组合函数中使用异步 setup</div>
+          <p>组合函数中可以使用 async/await，但不能让 setup 本身变成 async（除非配合 Suspense）。解决方案：在组合函数内部管理异步状态（loading/error/data），setup 本身同步返回这些状态。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ watch 的 deep 选项性能开销大</div>
+          <p><code>watch(obj, cb, { deep: true })</code> 会递归遍历对象所有属性。大对象上使用 deep: true 会造成性能问题。替代方案：只 watch 需要的属性（用 getter），或使用 shallowRef + 手动 triggerRef。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://cn.vuejs.org/guide/reusability/composables.html" target="_blank">Vue 3 - 组合式函数</a></li>
+          <li><a href="https://vueuse.org/" target="_blank">VueUse</a> — Vue 组合式 API 工具集</li>
+          <li><a href="https://cn.vuejs.org/guide/extras/composition-api-faq.html" target="_blank">Vue 3 - 组合式 API 常见问题</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>Composition API 相比 Options API 的优势？</div>
+          <div class="iq-hint">① 逻辑按功能组织（而非按选项分散）；② 组合函数实现逻辑复用（替代 mixins，无命名冲突、来源清晰）；③ 更好的 TypeScript 推导；④ Tree-shaking 友好（未使用的 API 不打包）；⑤ 更灵活的代码组织。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>如何设计一个好的组合函数？</div>
+          <div class="iq-hint">① 命名以 use 开头（useFetch, useMouse）；② 接收 ref 或 getter 作为参数（保持响应式）；③ 返回 ref/reactive 保持响应式；④ 清理副作用（onUnmounted）；⑤ 提供 TypeScript 类型；⑥ 参考VueUse 的设计模式。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>watch 和 watchEffect 的区别？分别适合什么场景？</div>
+          <div class="iq-hint">watch：显式指定监听源，可获取新旧值，默认懒执行。适合需要精确控制、对比旧值的场景。watchEffect：自动追踪依赖，立即执行，无法获取旧值。适合"数据变化→执行副作用"的简单场景（如网络请求、DOM 操作）。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

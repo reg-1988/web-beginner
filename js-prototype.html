@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>原型与继承 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="js-prototype">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>JavaScript 核心</span><span class="sep">/</span><span>原型与继承</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">JavaScript</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">原型与继承</h1>
+        <p class="page-subtitle">JavaScript 使用原型链实现继承，而非传统的类继承。理解原型链的查找机制、class 的语法糖本质，是深入理解 JS 面向对象的关键。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p>JavaScript 的对象系统基于<strong>原型（Prototype）</strong>。每个对象都有一个内部属性 <code>[[Prototype]]</code>（可通过 <code>__proto__</code> 或 <code>Object.getPrototypeOf()</code> 访问），指向另一个对象。当访问对象的属性时，如果自身没有，引擎会沿着原型链向上查找。</p>
+        <p><strong>原型链（Prototype Chain）</strong>是由对象通过 <code>[[Prototype]]</code> 串联起来的链式结构，最终指向 <code>null</code>。这是 JavaScript 实现继承和属性共享的核心机制。</p>
+        <p><strong>class</strong> 是 ES6 引入的语法糖，本质上仍然是基于原型的继承。class 写法更清晰，但不改变底层机制。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 prototype、__proto__ 和 constructor 的关系</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>属性</th><th>所在位置</th><th>指向</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>Func.prototype</code></td><td>构造函数</td><td>原型对象</td><td>实例共享的方法和属性存放于此</td></tr>
+              <tr><td><code>obj.__proto__</code></td><td>实例对象</td><td>构造函数的 prototype</td><td>非标准属性，推荐用 Object.getPrototypeOf()</td></tr>
+              <tr><td><code>Func.prototype.constructor</code></td><td>原型对象</td><td>构造函数本身</td><td>保证实例能追溯其构造函数</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>核心公式：<code>实例.__proto__ === 构造函数.prototype</code>，<code>构造函数.prototype.constructor === 构造函数</code>。</p>
+
+        <h3 class="subsection-title">2.2 原型链查找流程</h3>
+        <pre><code class="code-label">text">访问 obj.property 时：
+  ① 在 obj 自身属性中查找 → 找到则返回
+  ② 在 obj.__proto__（即 Constructor.prototype）中查找 → 找到则返回
+  ③ 在 Constructor.prototype.__proto__ 中查找 → ...
+  ④ 直到 null → 返回 undefined</code></pre>
+        <p>原型链终点：<code>Object.prototype.__proto__ === null</code>。</p>
+
+        <h3 class="subsection-title">2.3 继承模式演进</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>模式</th><th>优点</th><th>缺点</th></tr></thead>
+            <tbody>
+              <tr><td>原型链继承</td><td>简单</td><td>引用类型属性共享，无法传参</td></tr>
+              <tr><td>构造函数继承</td><td>可传参，避免引用共享</td><td>方法无法复用，每实例一份</td></tr>
+              <tr><td>组合继承</td><td>结合两者优点</td><td>父构造函数调用两次</td></tr>
+              <tr><td>寄生组合继承</td><td>最优传统方案</td><td>写法复杂</td></tr>
+              <tr><td>class 继承（ES6）</td><td>语法简洁，语义清晰</td><td>本质仍是原型，需理解底层</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 class 语法本质</h3>
+        <pre><code class="code-label">JavaScript</code>class Animal {
+  // 等价于 Animal 构造函数
+  constructor(name) {
+    this.name = name; // 实例属性
+  }
+  // 等价于 Animal.prototype.speak
+  speak() {
+    console.log(`${this.name} makes a noise.`);
+  }
+  // 静态方法：等价于 Animal.create
+  static create(name) {
+    return new Animal(name);
+  }
+}
+
+// class 的本质验证
+typeof Animal;                    // 'function'
+Animal.prototype.speak;          // 函数
+Object.getOwnPropertyNames(Animal); // ['length', 'name', 'prototype', 'create']</code></pre>
+
+        <h3 class="subsection-title">2.5 属性遮蔽（Shadowing）</h3>
+        <p>当实例和原型上有同名属性时，实例属性会遮蔽原型属性。这不会修改原型上的值，而是在实例自身创建了新属性。</p>
+        <pre><code class="code-label">JavaScript</code>function Foo() {}
+Foo.prototype.value = 10;
+const a = new Foo();
+const b = new Foo();
+
+a.value = 20; // 在 a 自身创建 value 属性，遮蔽原型
+console.log(a.value);  // 20（自身属性）
+console.log(b.value);  // 10（原型属性）
+console.log(a.hasOwnProperty('value')); // true
+console.log(b.hasOwnProperty('value')); // false</code></pre>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：ES6 class 继承完整示例</h3>
+        <pre><code class="code-label">JavaScript</code>class Shape {
+  constructor(color) {
+    this.color = color;
+  }
+  describe() {
+    return `A ${this.color} shape`;
+  }
+}
+
+class Circle extends Shape {
+  constructor(color, radius) {
+    super(color); // 必须在 this 之前调用
+    this.radius = radius;
+  }
+  area() {
+    return Math.PI * this.radius ** 2;
+  }
+  describe() {
+    return `${super.describe()}, radius: ${this.radius}`;
+  }
+}
+
+const c = new Circle('red', 5);
+console.log(c.describe()); // 'A red shape, radius: 5'
+console.log(c.area());     // 78.5398...
+
+// 原型链验证
+c instanceof Circle;  // true
+c instanceof Shape;   // true
+Object.getPrototypeOf(c) === Circle.prototype; // true</code></pre>
+
+        <h3 class="subsection-title">示例二：寄生组合继承（ES5 最优方案）</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 寄生组合继承：只调用一次父构造函数
+ * 这是 ES5 时代最优的继承方案，class extends 底层类似此实现
+ */
+function inheritPrototype(SubType, SuperType) {
+  // 创建父原型副本
+  const prototype = Object.create(SuperType.prototype);
+  // 修正 constructor 指向
+  prototype.constructor = SubType;
+  // 设置子类的原型
+  SubType.prototype = prototype;
+}
+
+function Person(name) {
+  this.name = name;
+  this.friends = [];
+}
+Person.prototype.addFriend = function(friend) {
+  this.friends.push(friend);
+};
+
+function Student(name, grade) {
+  Person.call(this, name); // 借用构造函数（第二次调用）
+  this.grade = grade;
+}
+
+inheritPrototype(Student, Person);
+
+Student.prototype.introduce = function() {
+  return `I'm ${this.name}, grade ${this.grade}`;
+};
+
+const s = new Student('Alice', 3);
+s.addFriend('Bob');
+console.log(s.introduce()); // "I'm Alice, grade 3"</code></pre>
+
+        <h3 class="subsection-title">示例三：Object.create 与原型</h3>
+        <pre><code class="code-label">JavaScript</code>// Object.create(proto) — 创建以 proto 为原型的新对象
+const animal = {
+  speak() { console.log(`${this.name} speaks`); },
+  init(name) {
+    this.name = name;
+    return this;
+  }
+};
+
+// 原型式继承
+const dog = Object.create(animal).init('Rex');
+dog.speak(); // 'Rex speaks'
+
+// Object.create(null) — 无原型对象，适合做纯净的 Map
+const cleanMap = Object.create(null);
+cleanMap['key'] = 'value';
+// 没有 toString、hasOwnProperty 等原型方法
+console.log('key' in cleanMap);  // true
+console.log(cleanMap.toString);  // undefined
+
+// Object.create 第二参数：定义属性描述符
+const obj = Object.create(animal, {
+  name: {
+    value: 'Cat',
+    writable: true,
+    enumerable: true,
+    configurable: true
+  }
+});</code></pre>
+
+        <h3 class="subsection-title">示例四：判断属性来源</h3>
+        <pre><code class="code-label">JavaScript</code>function MyClass() {
+  this.ownProp = 'I am own';
+}
+MyClass.prototype.inheritedProp = 'I am inherited';
+
+const obj = new MyClass();
+
+// hasOwnProperty — 是否为自身属性
+obj.hasOwnProperty('ownProp');       // true
+obj.hasOwnProperty('inheritedProp'); // false
+
+// in 操作符 — 包含原型链
+'ownProp' in obj;       // true
+'inheritedProp' in obj; // true
+'toString' in obj;      // true（来自 Object.prototype）
+
+// for...in — 遍历可枚举属性（含原型链）
+for (const key in obj) {
+  if (obj.hasOwnProperty(key)) {
+    console.log('own:', key); // 'own: ownProp'
+  }
+}
+
+// Object.keys() — 仅自身可枚举属性
+Object.keys(obj); // ['ownProp']
+
+// Object.getOwnPropertyNames() — 仅自身属性（含不可枚举）
+Object.getOwnPropertyNames(obj); // ['ownProp']</code></pre>
+
+        <h3 class="subsection-title">示例五： mixin 模式（多继承替代）</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * JavaScript 不支持多继承，但可通过 mixin 模式混入多个功能
+ */
+const Serializable = {
+  toJSON() {
+    return JSON.stringify(this, null, 2);
+  },
+  fromJSON(json) {
+    return Object.assign(Object.create(Object.getPrototypeOf(this)), JSON.parse(json));
+  }
+};
+
+const Validatable = {
+  validate() {
+    const errors = [];
+    if (!this.name || this.name.trim() === '') {
+      errors.push('Name is required');
+    }
+    return { valid: errors.length === 0, errors };
+  }
+};
+
+class User {
+  constructor(name, email) {
+    this.name = name;
+    this.email = email;
+  }
+}
+
+// 混入
+Object.assign(User.prototype, Serializable, Validatable);
+
+const user = new User('Alice', 'alice@test.com');
+console.log(user.validate()); // { valid: true, errors: [] }
+console.log(user.toJSON());   // '{\n  "name": "Alice",\n  "email": "alice@test.com"\n}'</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">__proto__ 和 prototype 有什么区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>prototype 是构造函数的属性，指向原型对象，用于定义实例共享的方法。__proto__ 是对象的内部属性，指向其构造函数的 prototype。关系：<code>实例.__proto__ === 构造函数.prototype</code>。__proto__ 是非标准属性，推荐使用 Object.getPrototypeOf()。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">为什么修改原型上的引用类型会影响所有实例？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>原型上的引用类型（数组、对象）被所有实例共享。如果实例直接修改引用类型（如 <code>this.arr.push(1)</code>），修改的是原型上的同一个数组。解决方案：引用类型属性在构造函数中初始化（每个实例独立拥有），不要放在原型上。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">class 和 function 构造函数有什么区别？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>class 不会变量提升（有 TDZ）；class 中的方法不可枚举；class 必须用 new 调用（直接调用报错）；class 的 constructor 默认返回 this。本质相同，class 是语法糖，底层仍基于原型链。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 不要在原型上放引用类型</div>
+          <p><code>Person.prototype.hobbies = [];</code> 会导致所有实例共享同一个数组！一个实例 push 了一个值，所有实例都能看到。引用类型属性必须在构造函数中创建。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ 重写 prototype 会丢失 constructor</div>
+          <p><code>Func.prototype = { method() {} };</code> 会导致 constructor 指向 Object 而非 Func。修复：<code>Func.prototype.constructor = Func;</code>，或用 Object.defineProperty 定义不可枚举的 constructor。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Inheritance_and_the_prototype_chain" target="_blank">MDN - 继承与原型链</a></li>
+          <li><a href="https://zh.javascript.info/prototype-inheritance" target="_blank">现代 JavaScript 教程 - 原型继承</a></li>
+          <li><a href="https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/objects-classes/README.md" target="_blank">You Don't Know JS - Objects & Classes</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>请描述原型链的查找机制。</div>
+          <div class="iq-hint">访问对象属性时，先查自身，再沿 __proto__ 向上查找直到 null。每个对象的 __proto__ 指向其构造函数的 prototype。终点是 Object.prototype.__proto__ === null。这就是为什么所有对象都有 toString 等方法。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>如何实现继承？ES5 和 ES6 各怎么写？</div>
+          <div class="iq-hint">ES5 最优方案：寄生组合继承（Object.create 复制父原型 + 借用构造函数传参）。ES6：class + extends + super。class 本质是语法糖，底层仍是原型链。注意 super() 必须在 this 之前调用。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>instanceof 的原理是什么？</div>
+          <div class="iq-hint">instanceof 检查构造函数的 prototype 是否在对象的原型链上。等价于：沿着 obj.__proto__ 向上查找，看是否有等于 Constructor.prototype 的。因此 instanceof 对原始类型返回 false，且跨 iframe 会失效（不同全局环境的 prototype 不同）。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web 性能优化 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="perf-web">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>性能与安全</span><span class="sep">/</span><span>Web 性能优化</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">性能</span><span class="tag tag-intermediate">中级</span></div>
+        <h1 class="page-title">Web 性能优化</h1>
+        <p class="page-subtitle">性能是用户体验的基石——掌握核心指标、加载优化、运行时优化和工具链，才能系统性地提升 Web 应用性能。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>Web 性能优化</strong>是让网页加载更快、交互更流畅的系统性工程。Google 的 <strong>Core Web Vitals</strong>（核心网页指标）定义了三个关键指标：LCP（加载性能）、FID/INP（交互性能）、CLS（视觉稳定性）。</p>
+        <p>性能优化不是单一的技巧，而是贯穿<strong>网络传输→资源加载→页面渲染→用户交互</strong>全链路的系统性工作。每个环节都有对应的优化手段。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 Core Web Vitals</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>指标</th><th>衡量</th><th>好</th><th>需改进</th><th>差</th></tr></thead>
+            <tbody>
+              <tr><td><strong>LCP</strong></td><td>最大内容绘制时间</td><td>≤2.5s</td><td>2.5~4s</td><td>&gt;4s</td></tr>
+              <tr><td><strong>INP</strong></td><td>交互到下一次绘制延迟</td><td>≤200ms</td><td>200~500ms</td><td>&gt;500ms</td></tr>
+              <tr><td><strong>CLS</strong></td><td>累积布局偏移</td><td>≤0.1</td><td>0.1~0.25</td><td>&gt;0.25</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.2 加载优化策略</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>策略</th><th>原理</th><th>适用场景</th></tr></thead>
+            <tbody>
+              <tr><td>代码分割</td><td>按路由/功能拆分 chunk</td><td>SPA 首屏优化</td></tr>
+              <tr><td>Tree-shaking</td><td>删除未引用的导出</td><td>所有项目</td></tr>
+              <tr><td>资源压缩</td><td>Gzip/Brotli + 图片压缩</td><td>所有项目</td></tr>
+              <tr><td>CDN</td><td>就近分发，减少 RTT</td><td>静态资源分发</td></tr>
+              <tr><td>HTTP/2</td><td>多路复用、头部压缩</td><td>所有项目</td></tr>
+              <tr><td>预加载</td><td>preload/prefetch/preconnect</td><td>关键资源提前获取</td></tr>
+              <tr><td>SSR/SSG</td><td>服务端渲染/静态生成</td><td>SEO + 首屏性能</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 运行时优化策略</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>策略</th><th>原理</th><th>效果</th></tr></thead>
+            <tbody>
+              <tr><td>防抖/节流</td><td>限制高频事件的处理频率</td><td>减少不必要的计算</td></tr>
+              <tr><td>虚拟列表</td><td>只渲染可见区域 DOM</td><td>大量数据列表</td></tr>
+              <tr><td>Web Worker</td><td>将计算移到后台线程</td><td>CPU 密集型任务</td></tr>
+              <tr><td>requestAnimationFrame</td><td>与浏览器刷新同步</td><td>动画、滚动处理</td></tr>
+              <tr><td>减少重排重绘</td><td>使用 transform/opacity</td><td>动画性能</td></tr>
+              <tr><td>内存管理</td><td>及时解除引用、避免泄漏</td><td>长时间运行的应用</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：资源预加载</h3>
+        <pre><code class="code-label">HTML</code>&lt;!-- 预加载：当前页面马上需要的资源 --&gt;
+&lt;link rel="preload" href="/js/critical.js" as="script"&gt;
+&lt;link rel="preload" href="/css/critical.css" as="style"&gt;
+&lt;link rel="preload" href="/fonts/main.woff2" as="font" type="font/woff2" crossorigin&gt;
+
+&lt;!-- 预获取：下一页面可能需要的资源 --&gt;
+&lt;link rel="prefetch" href="/js/next-page.js" as="script"&gt;
+
+&lt;!-- DNS 预解析 --&gt;
+&lt;link rel="dns-prefetch" href="//api.example.com"&gt;
+
+&lt;!-- 预连接：DNS + TCP + TLS --&gt;
+&lt;link rel="preconnect" href="//api.example.com"&gt;
+
+&lt;!-- 最佳实践：
+  - preload 用于当前页面关键资源
+  - prefetch 用于下一页面资源
+  - preconnect 用于跨域 API/CDN
+  - 不要过度使用（浪费带宽）
+--&gt;</code></pre>
+
+        <h3 class="subsection-title">示例二：防抖与节流</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 防抖：停止触发 n 毫秒后执行
+ */
+function debounce(fn, delay = 300) {
+  let timer = null;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+/**
+ * 节流：每 n 毫秒最多执行一次
+ */
+function throttle(fn, interval = 300) {
+  let lastTime = 0;
+  return function(...args) {
+    const now = Date.now();
+    if (now - lastTime >= interval) {
+      lastTime = now;
+      fn.apply(this, args);
+    }
+  };
+}
+
+// 使用场景
+// 防抖：搜索输入、窗口 resize 结束后重新计算
+// 节流：滚动事件、拖拽移动、鼠标移动
+
+// 搜索框
+input.addEventListener('input', debounce((e) => {
+  search(e.target.value);
+}, 500));
+
+// 滚动加载
+window.addEventListener('scroll', throttle(() => {
+  if (isNearBottom()) loadMore();
+}, 200));</code></pre>
+
+        <h3 class="subsection-title">示例三：Web Worker 处理密集计算</h3>
+        <pre><code class="code-label">JavaScript</code>// main.js
+const worker = new Worker('worker.js');
+
+worker.postMessage({ type: 'PROCESS', data: largeArray });
+worker.onmessage = (e) => {
+  if (e.data.type === 'RESULT') {
+    console.log('处理完成:', e.data.result);
+    renderResult(e.data.result);
+  }
+};
+
+// worker.js
+self.onmessage = (e) => {
+  if (e.data.type === 'PROCESS') {
+    // 耗时计算在 Worker 线程执行，不阻塞主线程
+    const result = e.data.data.map(item => expensiveTransform(item));
+    self.postMessage({ type: 'RESULT', result });
+  }
+};
+
+// 使用 Comlink 简化 Worker 通信（推荐）
+// import * as Comlink from 'comlink';
+// const worker = Comlink.wrap(new Worker('worker.js'));
+// const result = await worker.processData(largeArray);</code></pre>
+
+        <h3 class="subsection-title">示例四：避免 CLS 的技巧</h3>
+        <pre><code class="code-label">CSS</code>/* 1. 图片/视频预留空间 */
+.img-container {
+  /* 使用 aspect-ratio 预留空间 */
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+.img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 2. 字体交换导致的布局偏移 */
+/* 使用 font-display: optional 或 swap + size-adjust */
+@font-face {
+  font-family: 'MyFont';
+  src: url('/fonts/myfont.woff2') format('woff2');
+  font-display: optional; /* 如果字体未加载完，用后备字体 */
+  size-adjust: 105%;      /* 调整后备字体大小匹配 */
+}
+
+/* 3. 动态插入内容预留空间 */
+.ad-slot {
+  min-height: 250px; /* 广告位预留高度 */
+}
+
+/* 4. 避免 top/left 动画引起偏移 */
+/* 用 transform 而非改变布局属性 */
+.animate-in {
+  animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}</code></pre>
+
+        <h3 class="subsection-title">示例五：性能分析工具</h3>
+        <pre><code class="code-label">bash</code># Chrome DevTools
+# 1. Performance 面板：录制→分析 FPS/CPU/网络/渲染
+# 2. Lighthouse：一键审计性能/可访问性/SEO
+# 3. Coverage 面板：查看 JS/CSS 使用率
+# 4. Network 面板：瀑布图分析加载瓶颈
+
+# 命令行工具
+npx lighthouse https://example.com --output html --output-path report.html
+npx pagespeed-insights https://example.com
+
+# Web Vitals 测量（代码层面）
+import { onLCP, onINP, onCLS } from 'web-vitals';
+
+onLCP(console.log);  // 最大内容绘制
+onINP(console.log);  // 交互延迟
+onCLS(console.log);  // 布局偏移
+
+# Bundle 分析
+npx webpack-bundle-analyzer dist/stats.json   # Webpack
+npx vite-bundle-visualizer                     # Vite</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">SSR 一定能提升性能吗？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>不一定。SSR 提升首屏渲染速度（FCP/LCP），但 TTFB 会增加（服务器渲染耗时）。如果服务端渲染慢，反而降低体验。SSR 适合内容密集型页面（SEO 需求），CSR 适合交互密集型应用。混合方案：SSR 首屏 + CSR 后续交互。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">过度优化有什么问题？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>① 过早优化浪费时间（先度量再优化）；② 代码可读性下降（过度内联、过度缓存）；③ 增加维护成本；④ 可能引入 Bug。原则：先确保正确性，再优化性能；先用工具定位瓶颈，再针对性优化。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 不要忽视服务端性能</div>
+          <p>TTFB（首字节时间）是前端优化的基础。如果服务器响应慢（>1s），前端再怎么优化也无济于事。TTFB 优化：CDN、缓存、数据库优化、SSR 缓存、边缘计算。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://web.dev/articles/vitals" target="_blank">web.dev - Core Web Vitals</a></li>
+          <li><a href="https://web.dev/articles/performance" target="_blank">web.dev - 性能优化</a></li>
+          <li><a href="https://developers.google.com/web/fundamentals/performance/critical-rendering-path" target="_blank">关键渲染路径优化</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>前端性能优化有哪些手段？</div>
+          <div class="iq-hint">加载优化：代码分割、Tree-shaking、Gzip/Brotli、CDN、HTTP/2、预加载、懒加载、SSR/SSG、图片优化。运行时优化：防抖节流、虚拟列表、Web Worker、rAF、减少重排重绘、内存管理。感知优化：骨架屏、渐进加载、过渡动画。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>什么是 Core Web Vitals？</div>
+          <div class="iq-hint">Google 定义的三个核心性能指标：LCP（最大内容绘制，衡量加载速度，好≤2.5s）、INP（交互到绘制延迟，衡量交互响应，好≤200ms）、CLS（累积布局偏移，衡量视觉稳定性，好≤0.1）。这些指标影响 Google 搜索排名。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>

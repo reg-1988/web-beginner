@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESLint 与代码规范 - 前端知识体系</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="active-file" content="eng-eslint">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar"><div class="sidebar-header"><a href="index.html" class="logo"><span class="logo-icon">FE</span><span>前端知识体系</span></a></div><nav class="sidebar-nav" id="sidebar-nav"></nav></aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <main class="main-content">
+      <div class="topbar"><div class="breadcrumb"><a href="index.html">首页</a><span class="sep">/</span><span>前端工程化</span><span class="sep">/</span><span>ESLint 与代码规范</span></div></div>
+      <div class="content-wrapper">
+        <div class="flex-gap"><span class="tag tag-js">工程化</span><span class="tag tag-basic">初级</span></div>
+        <h1 class="page-title">ESLint 与代码规范</h1>
+        <p class="page-subtitle">代码规范不是教条，而是团队协作的基石——ESLint + Prettier + Git Hooks 的组合，能将规范从"口头约定"变为"自动执行"。</p>
+
+        <h2 class="section-title">1. 核心概念与定义</h2>
+        <p><strong>ESLint</strong>是一个可配置的 JavaScript 代码检查工具，用于识别和报告代码中的模式问题。它基于<strong>规则（Rules）</strong>工作，每条规则可以设为 off/warn/error，支持自定义规则和插件扩展。</p>
+        <p><strong>Prettier</strong>是代码格式化工具，关注代码的视觉呈现（缩进、换行、引号等）。与 ESLint 的区别：ESLint 关注代码质量（潜在 Bug、最佳实践），Prettier 关注代码风格（统一格式）。</p>
+        <p><strong>Git Hooks</strong>（如 husky + lint-staged）在代码提交前自动运行检查，确保不规范代码无法进入仓库。这是"规范自动化"的最后一块拼图。</p>
+
+        <h2 class="section-title">2. 关键特性与工作原理</h2>
+
+        <h3 class="subsection-title">2.1 ESLint 工作流程</h3>
+        <pre><code class="code-label">text">源代码 → [ESLint 解析为 AST] → [规则遍历 AST] → [报告问题] → [自动修复（可选）]
+
+1. 解析：使用 espree（默认）或 @typescript-eslint/parser 将代码解析为 AST
+2. 遍历：每个规则注册 visitor 回调，遍历 AST 时触发
+3. 报告：规则发现问题时生成 lint 结果
+4. 修复：规则提供 fix 函数时，ESLint 可自动修复</code></pre>
+
+        <h3 class="subsection-title">2.2 配置方式演进</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>方式</th><th>文件名</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>eslintrc（旧）</td><td>.eslintrc.js / .json / .yml</td><td>传统级联配置，已不推荐</td></tr>
+              <tr><td>flat config（新）</td><td>eslint.config.js</td><td>ESLint 9+ 默认方式，扁平化配置</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.3 常用规则分类</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>类别</th><th>示例规则</th><th>作用</th></tr></thead>
+            <tbody>
+              <tr><td>潜在 Bug</td><td>no-unused-vars, no-undef, no-dupe-keys</td><td>避免运行时错误</td></tr>
+              <tr><td>最佳实践</td><td>eqeqeq, no-var, prefer-const</td><td>推广现代写法</td></tr>
+              <tr><td>代码风格</td><td>curly, semi, quotes</td><td>统一编码风格</td></tr>
+              <tr><td>ES6+</td><td>arrow-body-style, template-curly-spacing</td><td>ES6 惯用写法</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-title">2.4 ESLint + Prettier 集成</h3>
+        <div class="callout callout-tip">
+          <div class="callout-title">💡 集成原则</div>
+          <p>Prettier 负责格式化，ESLint 负责代码质量。避免两者冲突：用 <code>eslint-config-prettier</code> 关闭 ESLint 中与 Prettier 冲突的规则，用 <code>eslint-plugin-prettier</code> 将 Prettier 规则作为 ESLint 规则运行。</p>
+        </div>
+
+        <h3 class="subsection-title">2.5 Git Hooks 自动化</h3>
+        <pre><code class="code-label">text">代码修改 → git add → git commit
+                         ↓ (pre-commit hook)
+                    lint-staged 运行
+                         ↓
+              仅检查暂存区中修改的文件
+                         ↓
+              ESLint 检查 + Prettier 格式化
+                         ↓
+              通过 → 提交成功
+              失败 → 提交被阻止</code></pre>
+
+        <h2 class="section-title">3. 代码示例与最佳实践</h2>
+
+        <h3 class="subsection-title">示例一：ESLint Flat Config（推荐）</h3>
+        <pre><code class="code-label">JavaScript</code>// eslint.config.js (ESLint 9+)
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import vuePlugin from 'eslint-plugin-vue';
+import prettierConfig from 'eslint-config-prettier';
+
+export default tseslint.config(
+  // 全局忽略
+  {
+    ignores: ['dist/', 'node_modules/', '*.min.js'],
+  },
+  // 基础 JS 规则
+  js.configs.recommended,
+  // TypeScript 规则
+  ...tseslint.configs.recommended,
+  // Vue 规则
+  ...vuePlugin.configs['flat/recommended'],
+  // Prettier 兼容（放最后，关闭冲突规则）
+  prettierConfig,
+  // 自定义规则
+  {
+    rules: {
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-unused-vars': 'off',           // 用 TS 规则替代
+      '@typescript-eslint/no-unused-vars': ['warn', {
+        argsIgnorePattern: '^_',          // _ 前缀参数不算未使用
+      }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+  // 针对特定文件的覆盖
+  {
+    files: ['scripts/**/*.js'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+);</code></pre>
+
+        <h3 class="subsection-title">示例二：Prettier 配置</h3>
+        <pre><code class="code-label">JSON</code>// .prettierrc
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "bracketSpacing": true,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "vueIndentScriptAndStyle": false
+}
+
+// .prettierignore
+dist
+node_modules
+*.min.js
+*.min.css
+package-lock.json
+
+// VS Code 配置（.vscode/settings.json）
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}</code></pre>
+
+        <h3 class="subsection-title">示例三：husky + lint-staged 配置</h3>
+        <pre><code class="code-label">bash</code># 安装
+npm install -D husky lint-staged
+
+# 初始化 husky
+npx husky init
+
+# 创建 pre-commit hook
+echo "npx lint-staged" > .husky/pre-commit</code></pre>
+        <pre><code class="code-label">JSON</code>// package.json
+{
+  "lint-staged": {
+    "*.{js,ts,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,scss,html,md}": [
+      "prettier --write"
+    ],
+    "*.{json,yml}": [
+      "prettier --write"
+    ]
+  },
+  "scripts": {
+    "lint": "eslint . --fix",
+    "format": "prettier --write .",
+    "prepare": "husky"
+  }
+}</code></pre>
+
+        <h3 class="subsection-title">示例四：自定义 ESLint 规则</h3>
+        <pre><code class="code-label">JavaScript</code>/**
+ * 自定义规则：禁止使用 moment.js，推荐使用 dayjs
+ */
+const noMomentRule = {
+  meta: {
+    type: 'suggestion',
+    docs: {
+      description: '禁止使用 moment.js，推荐使用 dayjs',
+    },
+    fixable: null,
+    messages: {
+      noMoment: '请使用 dayjs 替代 moment.js（体积从 200KB+ 降至 2KB）',
+    },
+  },
+  create(context) {
+    return {
+      // 检测 import 语句
+      ImportDeclaration(node) {
+        if (node.source.value === 'moment') {
+          context.report({
+            node,
+            messageId: 'noMoment',
+          });
+        }
+      },
+      // 检测 require 调用
+      CallExpression(node) {
+        if (
+          node.callee.name === 'require' &&
+          node.arguments[0]?.value === 'moment'
+        ) {
+          context.report({
+            node,
+            messageId: 'noMoment',
+          });
+        }
+      },
+    };
+  },
+};
+
+// 在 flat config 中使用
+import { RuleTester } from 'eslint';
+// const plugin = { rules: { 'no-moment': noMomentRule } };
+// export default [{ plugins: { custom: plugin }, rules: { 'custom/no-moment': 'error' } }];</code></pre>
+
+        <h3 class="subsection-title">示例五：Commitlint 规范提交信息</h3>
+        <pre><code class="code-label">bash</code># 安装
+npm install -D @commitlint/cli @commitlint/config-conventional
+
+# 配置 commitlint
+echo "export default { extends: ['@commitlint/config-conventional'] };" > commitlint.config.js
+
+# 添加 commit-msg hook
+echo "npx --no -- commitlint --edit \$1" > .husky/commit-msg</code></pre>
+        <pre><code class="code-label">text">Commit 规范格式：
+<type>(<scope>): <subject>
+
+type 类型：
+  feat:     新功能
+  fix:      修复 Bug
+  docs:     文档变更
+  style:    代码格式（不影响逻辑）
+  refactor: 重构（非新功能、非修复）
+  perf:     性能优化
+  test:     测试
+  chore:    构建/工具变更
+
+示例：
+  feat(user): 添加用户头像上传功能
+  fix(api): 修复请求超时未正确处理
+  refactor: 提取公共组件 Button</code></pre>
+
+        <h2 class="section-title">4. 常见问题与坑点</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">ESLint 和 Prettier 冲突怎么解决？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>安装 eslint-config-prettier，放在配置数组最后。它会关闭所有与 Prettier 冲突的 ESLint 规则。如果想在 ESLint 中运行 Prettier（统一报错来源），额外安装 eslint-plugin-prettier。顺序很重要：prettier 配置必须放最后。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">lint-staged 太慢怎么办？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>① 确保只检查暂存文件（lint-staged 默认行为）；② 减少规则数量（关闭不必要的 warn 规则）；③ 使用 ESLint 缓存（--cache）；④ 将类型检查移到 CI 而非 pre-commit；⑤ 考虑只格式化不检查（只跑 prettier，不跑 eslint）。</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">如何处理遗留项目的 ESLint 接入？ <span class="faq-toggle">+</span></div>
+          <div class="faq-answer"><p>渐进式接入：① 初期只开启少量关键规则（no-undef, no-unused-vars），其余设为 warn；② 使用 .eslintignore 排除旧代码；③ 用 eslint --fix 批量修复可自动修复的问题；④ 每次迭代逐步提高规则严格度；⑤ 新文件严格执行，旧文件逐步改造。</p></div>
+        </div>
+
+        <div class="callout callout-danger">
+          <div class="callout-title">🚫 不要用 ESLint --fix 代替代码审查</div>
+          <p>ESLint --fix 只能修复格式和简单问题，无法发现逻辑错误、设计缺陷、性能问题。代码审查（Code Review）关注的是逻辑、架构和可维护性，两者互补不可替代。</p>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠ VS Code 中 ESLint 和 Prettier 的执行顺序</div>
+          <p>推荐设置：保存时先执行 ESLint --fix（修复代码质量问题），再执行 Prettier 格式化（统一风格）。在 settings.json 中配置 editor.codeActionsOnSave.source.fixAll.eslint 和 editor.formatOnSave，确保 ESLint 先于 Prettier。</p>
+        </div>
+
+        <h2 class="section-title">5. 拓展阅读与面试题</h2>
+
+        <ul>
+          <li><a href="https://zh-hans.eslint.org/" target="_blank">ESLint 中文文档</a></li>
+          <li><a href="https://prettier.io/docs/en/index.html" target="_blank">Prettier 文档</a></li>
+          <li><a href="https://commitlint.js.org/" target="_blank">Commitlint 文档</a></li>
+        </ul>
+
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">1</span>ESLint 的工作原理是什么？</div>
+          <div class="iq-hint">ESLint 将源代码解析为 AST，然后遍历 AST 节点，每个规则注册 visitor 回调函数。当遍历到匹配的节点类型时，回调函数被触发，检查代码是否符合规则，不符合则报告问题。支持自动修复的规则提供 fix 函数，ESLint 可根据 fix 函数自动修改代码。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">2</span>ESLint 和 Prettier 的区别？如何配合？</div>
+          <div class="iq-hint">ESLint：代码质量检查（潜在 Bug、最佳实践），也包含少量格式规则。Prettier：纯粹的代码格式化（缩进、换行、引号等），不支持代码质量检查。配合：用 eslint-config-prettier 关闭冲突规则，ESLint 负责质量，Prettier 负责格式。通过 lint-staged 在提交前自动运行。</div>
+        </div>
+        <div class="interview-card">
+          <div class="iq-question"><span class="iq-number">3</span>如何保证团队代码规范落地？</div>
+          <div class="iq-hint">三层防线：① 编辑器层：VS Code + ESLint/Prettier 插件 + formatOnSave，编码时实时提示和修复；② 提交层：husky + lint-staged，pre-commit 时自动检查和格式化暂存文件；③ CI 层：GitHub Actions / GitLab CI 运行 lint 检查，不通过则阻止合并。核心原则：自动化 > 文档 > 口头约定。</div>
+        </div>
+
+        <div id="page-nav"></div>
+      </div>
+    </main>
+  </div>
+  <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+  <script src="js/main.js"></script>
+</body>
+</html>
