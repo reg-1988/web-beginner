@@ -76,6 +76,21 @@ const NAV_DATA = [
   },
 ];
 
+// ========== Highlight.js language mapping ==========
+const LANG_MAP = {
+  JavaScript: 'javascript',
+  TypeScript: 'typescript',
+  CSS: 'css',
+  HTML: 'html',
+  Vue: 'html',
+  JSX: 'jsx',
+  bash: 'bash',
+  JSON: 'json',
+  HTTP: 'http',
+  ini: 'ini',
+  WXML: 'xml',
+};
+
 // ========== Get all pages in order ==========
 function getAllPages() {
   const pages = [];
@@ -196,17 +211,28 @@ function initMobileToggle() {
 // ========== Fix pre>code structure ==========
 // Problem: <pre><code class="code-label">Lang</code>raw text...</pre>
 // The raw text after </code> is a direct text node of <pre>, not wrapped in <code>.
-// Fix: wrap the bare text nodes into a proper <code> element.
+// Fix: wrap the bare text nodes into a proper <code> element with language class for highlight.js.
 function fixPreCodeStructure() {
   document.querySelectorAll('pre').forEach((pre) => {
     const labelCode = pre.querySelector('code.code-label');
     if (!labelCode) return;
 
-    // Collect all nodes after the label <code> (text nodes + element nodes)
+    const lang = labelCode.textContent.trim();
+
+    // Replace <code class="code-label"> with <span class="code-label">
+    // so highlight.js won't target it
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'code-label';
+    labelSpan.textContent = lang;
+    pre.insertBefore(labelSpan, labelCode);
+    pre.removeChild(labelCode);
+    const newLabel = pre.querySelector('.code-label');
+
+    // Collect all nodes after the label (text nodes + element nodes)
     const nodesToWrap = [];
     let found = false;
     for (const node of pre.childNodes) {
-      if (node === labelCode) {
+      if (node === newLabel) {
         found = true;
         continue;
       }
@@ -219,6 +245,10 @@ function fixPreCodeStructure() {
 
     // Create a new <code> element and move nodes into it
     const codeEl = document.createElement('code');
+    const mapped = LANG_MAP[lang];
+    if (mapped) {
+      codeEl.className = 'language-' + mapped;
+    }
     nodesToWrap.forEach((node) => {
       pre.removeChild(node);
       codeEl.appendChild(node);
@@ -304,9 +334,27 @@ function initTocNav() {
   updateActiveToc();
 }
 
+// ========== Load highlight.js from CDN ==========
+function loadHighlightJs() {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css';
+  document.head.appendChild(link);
+
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js';
+  script.onload = () => {
+    document.querySelectorAll('pre code:not(.code-label)').forEach((el) => {
+      hljs.highlightElement(el);
+    });
+  };
+  document.head.appendChild(script);
+}
+
 // ========== Init ==========
 function initPage(activeFile) {
   fixPreCodeStructure();
+  loadHighlightJs();
   renderSidebar(activeFile);
   renderPageNav(activeFile);
   initFaqToggle();
