@@ -25,14 +25,14 @@
         <h2 class="section-title">2. 关键特性与工作原理</h2>
 
         <h3 class="subsection-title">2.1 攻击流程</h3>
-        <pre><code class="code-label">text">1. 用户登录 bank.com，浏览器保存 Cookie
+        <pre><code class="code-label">text</code>1. 用户登录 bank.com，浏览器保存 Cookie
 2. 用户访问 evil.com（攻击者网站）
 3. evil.com 中包含：
    &lt;img src="https://bank.com/transfer?to=hacker&amount=10000"&gt;
 4. 浏览器自动携带 bank.com 的 Cookie 发起请求
 5. bank.com 服务器验证 Cookie 有效，执行转账
 
-关键：浏览器自动携带 Cookie，攻击者不需要知道 Cookie 内容</code></pre>
+关键：浏览器自动携带 Cookie，攻击者不需要知道 Cookie 内容</pre>
 
         <h3 class="subsection-title">2.2 常见攻击手法</h3>
         <div class="table-wrapper">

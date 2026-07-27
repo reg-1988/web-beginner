@@ -81,14 +81,14 @@
 
         <h3 class="subsection-title">2.4 幽灵依赖问题</h3>
         <p>npm/yarn 的扁平 node_modules 结构会导致<strong>幽灵依赖</strong>：项目可以 import 未在 package.json 中声明的包（因为它们被其他依赖提升到了顶层）。pnpm 通过严格的依赖隔离解决了此问题。</p>
-        <pre><code class="code-label">text">node_modules/
+        <pre><code class="code-label">text</code>node_modules/
 ├── express/        ← package.json 声明的依赖
 ├── body-parser/    ← express 的依赖（被提升）
 ├── qs/             ← body-parser 的依赖（被提升）← 幽灵依赖！
 └── ...
 
 // 项目代码中可以直接 import qs，但 package.json 没有声明
-// 如果 express 升级去掉了 body-parser，qs 就消失了，项目报错</code></pre>
+// 如果 express 升级去掉了 body-parser，qs 就消失了，项目报错</pre>
 
         <h2 class="section-title">3. 代码示例与最佳实践</h2>
 

@@ -39,11 +39,11 @@
         <p>核心公式：<code>实例.__proto__ === 构造函数.prototype</code>，<code>构造函数.prototype.constructor === 构造函数</code>。</p>
 
         <h3 class="subsection-title">2.2 原型链查找流程</h3>
-        <pre><code class="code-label">text">访问 obj.property 时：
+        <pre><code class="code-label">text</code>访问 obj.property 时：
   ① 在 obj 自身属性中查找 → 找到则返回
   ② 在 obj.__proto__（即 Constructor.prototype）中查找 → 找到则返回
   ③ 在 Constructor.prototype.__proto__ 中查找 → ...
-  ④ 直到 null → 返回 undefined</code></pre>
+  ④ 直到 null → 返回 undefined</pre>
         <p>原型链终点：<code>Object.prototype.__proto__ === null</code>。</p>
 
         <h3 class="subsection-title">2.3 继承模式演进</h3>

@@ -26,7 +26,7 @@
         <h2 class="section-title">2. 关键特性与工作原理</h2>
 
         <h3 class="subsection-title">2.1 事件循环模型</h3>
-        <pre><code class="code-label">text">┌───────────────────────────┐
+        <pre><code class="code-label">text</code>┌───────────────────────────┐
 │       调用栈 (Call Stack)   │  ← 同步代码在此执行
 └──────────────┬────────────┘
                │ 栈空
@@ -43,7 +43,7 @@
 └──────────────┬────────────┘
                │ 执行完一个宏任务
                ▼
-          回到清空微任务队列</code></pre>
+          回到清空微任务队列</pre>
 
         <h3 class="subsection-title">2.2 宏任务与微任务分类</h3>
         <div class="table-wrapper">
@@ -71,7 +71,7 @@
 
         <h3 class="subsection-title">2.4 requestAnimationFrame 的位置</h3>
         <p>在浏览器中，rAF 在微任务之后、浏览器渲染之前执行。它不属于宏任务也不属于微任务，而是渲染流程的一部分。这使得它适合做动画——保证在下一帧绘制前更新样式。</p>
-        <pre><code class="code-label">text">宏任务 → 微任务（清空）→ requestAnimationFrame → 渲染 → 下一个宏任务</code></pre>
+        <pre><code class="code-label">text</code>宏任务 → 微任务（清空）→ requestAnimationFrame → 渲染 → 下一个宏任务</pre>
 
         <h2 class="section-title">3. 代码示例与最佳实践</h2>
 

@@ -26,12 +26,12 @@
         <h2 class="section-title">2. 关键特性与工作原理</h2>
 
         <h3 class="subsection-title">2.1 ESLint 工作流程</h3>
-        <pre><code class="code-label">text">源代码 → [ESLint 解析为 AST] → [规则遍历 AST] → [报告问题] → [自动修复（可选）]
+        <pre><code class="code-label">text</code>源代码 → [ESLint 解析为 AST] → [规则遍历 AST] → [报告问题] → [自动修复（可选）]
 
 1. 解析：使用 espree（默认）或 @typescript-eslint/parser 将代码解析为 AST
 2. 遍历：每个规则注册 visitor 回调，遍历 AST 时触发
 3. 报告：规则发现问题时生成 lint 结果
-4. 修复：规则提供 fix 函数时，ESLint 可自动修复</code></pre>
+4. 修复：规则提供 fix 函数时，ESLint 可自动修复</pre>
 
         <h3 class="subsection-title">2.2 配置方式演进</h3>
         <div class="table-wrapper">
@@ -64,7 +64,7 @@
         </div>
 
         <h3 class="subsection-title">2.5 Git Hooks 自动化</h3>
-        <pre><code class="code-label">text">代码修改 → git add → git commit
+        <pre><code class="code-label">text</code>代码修改 → git add → git commit
                          ↓ (pre-commit hook)
                     lint-staged 运行
                          ↓
@@ -73,7 +73,7 @@
               ESLint 检查 + Prettier 格式化
                          ↓
               通过 → 提交成功
-              失败 → 提交被阻止</code></pre>
+              失败 → 提交被阻止</pre>
 
         <h2 class="section-title">3. 代码示例与最佳实践</h2>
 
@@ -234,7 +234,7 @@ echo "export default { extends: ['@commitlint/config-conventional'] };" > commit
 
 # 添加 commit-msg hook
 echo "npx --no -- commitlint --edit \$1" > .husky/commit-msg</code></pre>
-        <pre><code class="code-label">text">Commit 规范格式：
+        <pre><code class="code-label">text</code>Commit 规范格式：
 <type>(<scope>): <subject>
 
 type 类型：
@@ -250,7 +250,7 @@ type 类型：
 示例：
   feat(user): 添加用户头像上传功能
   fix(api): 修复请求超时未正确处理
-  refactor: 提取公共组件 Button</code></pre>
+  refactor: 提取公共组件 Button</pre>
 
         <h2 class="section-title">4. 常见问题与坑点</h2>
 

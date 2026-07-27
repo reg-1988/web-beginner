@@ -30,8 +30,8 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "Fira Code", "JetBrains Mono", "Consolas", monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
   --max-width: 960px;
   --sidebar-width: 260px;
   --transition: 0.2s ease;
@@ -291,12 +291,12 @@ img {
 }
 
 .page-nav-link.next .label::after {
-  content: " →";
+  content: ' →';
   margin-left: 2px;
 }
 
 .page-nav-link.prev .label::before {
-  content: "← ";
+  content: '← ';
   margin-right: 2px;
 }
 
@@ -917,6 +917,12 @@ tr:hover td {
 ::selection {
   background: rgba(37, 99, 235, 0.15);
   color: var(--color-text);
+}
+
+pre code::selection,
+pre ::selection {
+  background: rgba(37, 99, 235, 0.4);
+  color: #fff;
 }
 
 /* --- Overlay for mobile --- */

@@ -53,14 +53,14 @@
         <p>通过 <code>event.touches</code>（所有触摸点）、<code>event.targetTouches</code>（当前元素的触摸点）、<code>event.changedTouches</code>（变化的触摸点）访问 Touch 对象列表。</p>
 
         <h3 class="subsection-title">2.3 事件触发顺序</h3>
-        <pre><code class="code-label">text">触摸操作：touchstart → touchmove(多次) → touchend
+        <pre><code class="code-label">text</code>触摸操作：touchstart → touchmove(多次) → touchend
 之后（约300ms）：click
 
 滑动操作：touchstart → touchmove(多次) → touchend
 不会触发 click（因为移动了）
 
 多指操作：
-touchstart(第1指) → touchstart(第2指) → touchmove → touchend</code></pre>
+touchstart(第1指) → touchstart(第2指) → touchmove → touchend</pre>
 
         <h3 class="subsection-title">2.4 passive 事件监听器</h3>
         <p>Chrome 为了优化滚动性能，默认将 touchstart/touchmove 监听器设为 passive（不可调用 preventDefault）。如果需要阻止默认行为，必须显式设为 <code>{ passive: false }</code>。</p>

@@ -26,7 +26,7 @@
         <h2 class="section-title">2. 关键特性与工作原理</h2>
 
         <h3 class="subsection-title">2.1 Options API vs Composition API</h3>
-        <pre><code class="code-label">text">Options API（按选项类型组织）     Composition API（按逻辑功能组织）
+        <pre><code class="code-label">text</code>Options API（按选项类型组织）     Composition API（按逻辑功能组织）
 ┌─────────────────────┐          ┌─────────────────────┐
 │ data() { ... }      │ ← 功能A  │ // 功能A：搜索       │
 │ computed: { ... }   │ ← 功能B  │ const keyword = ref()│
@@ -36,7 +36,7 @@
 │                     │          │ // 功能B：分页        │
 │ 代码跳来跳去        │          │ const page = ref()   │
 │ 难以定位功能边界     │          │ const changePage = ..│
-└─────────────────────┘          └─────────────────────┘</code></pre>
+└─────────────────────┘          └─────────────────────┘</pre>
 
         <h3 class="subsection-title">2.2 核心 API 速查</h3>
         <div class="table-wrapper">

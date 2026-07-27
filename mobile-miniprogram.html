@@ -25,7 +25,7 @@
         <h2 class="section-title">2. 关键特性与工作原理</h2>
 
         <h3 class="subsection-title">2.1 双线程模型</h3>
-        <pre><code class="code-label">text">┌──────────────────────────────────────────┐
+        <pre><code class="code-label">text</code>┌──────────────────────────────────────────┐
 │              微信客户端 (Native)           │
 │  ┌──────────┐  WeixinJSBridge  ┌───────┐ │
 │  │ 渲染层    │ ←─────────────→ │ 逻辑层 │ │
@@ -37,7 +37,7 @@
 └──────────────────────────────────────────┘
 
 优势：逻辑与渲染分离，JS 不会阻塞 UI
-代价：通信有开销，不能直接操作 DOM</code></pre>
+代价：通信有开销，不能直接操作 DOM</pre>
 
         <h3 class="subsection-title">2.2 生命周期</h3>
         <div class="table-wrapper">
@@ -218,7 +218,7 @@ const data = await request({
 });</code></pre>
 
         <h3 class="subsection-title">示例五：性能优化要点</h3>
-        <pre><code class="code-label">text">1. setData 优化
+        <pre><code class="code-label">text</code>1. setData 优化
    - 不要频繁调用 setData（合并更新）
    - 只传必要的数据（不要传整个大对象）
    - 避免 setData 设置不在 WXML 中使用的数据
@@ -239,7 +239,7 @@ const data = await request({
    - 分包预加载提升体验
 
 5. 避免使用 CSS :hover（移动端无效）
-   使用 hover-class 替代</code></pre>
+   使用 hover-class 替代</pre>
 
         <h2 class="section-title">4. 常见问题与坑点</h2>
 
